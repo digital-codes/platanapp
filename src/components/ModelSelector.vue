@@ -3,7 +3,7 @@
     <label for="model-select" class="selector-label">AI Model:</label>
     <select 
       id="model-select"
-      :value="modelValue" 
+      :value="modelValue"
       @change="updateModel"
       class="model-select"
     >
@@ -15,9 +15,7 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  modelValue: string
-}
+const { modelValue } = defineProps<{ modelValue: string }>();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
