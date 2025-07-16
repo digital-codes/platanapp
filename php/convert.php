@@ -27,7 +27,8 @@ $now = time();
 $deleted = [];
 $files = array_merge(
     glob($audioDir . '/*.webm'),
-    glob($audioDir . '/*.wav')
+    glob($audioDir . '/*.wav'),
+    glob($audioDir . '/*.txt')
 );
 
 foreach ($files as $file) {
