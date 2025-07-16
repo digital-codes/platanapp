@@ -1,18 +1,92 @@
-# Vue 3 + TypeScript + Vite
+# Platanen ChatBot
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+This is the prototype of a very simple chat bot inspired by https://kiwilab.de/platane.html 
 
-## Recommended IDE Setup
+The entire system runs on a middle-class VM (8 cores, 32GB RAM, no GPU) with acceptable speed for testing. To scale for production fast hardware would be needed, or access to remote services like https://deepinfra.com/
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+# Demo
 
-## Type Support For `.vue` Imports in TS
+https://llama.ok-lab-karlsruhe.de/platane/
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+**Note: the demo uses GERMAN language for input**
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+# Structure
+Implements the following tasks
+
+ * User input, currently voice 
+ * Transscribe voice to text
+ * Generate LLM prompt from system prompt and user input
+ * Prompt LLM, various models
+ * Synthesize LLM response to audio
+ * Present repsonse text and audio to user
+
+# Composition
+
+## Front End
+
+Vue3 application
+
+  * Audio input for user questions
+  * Display of the results of the various steps
+  * Audio output with controls
+
+Calls appropriate HTTP routes (see below)
+
+## Back End
+
+### HTTP
+
+Set of simple PHP scripts for:
+
+ * Upload audio
+ * Transscribe
+ * LLM interaction
+ * Synthesize
+
+### Services
+
+All services run on the local (actually hosted) VM
+
+ * Speech Recognition
+   * Whisper 
+      * Whisper.cpp, with medium multilingual model
+ * LLM
+   * Ollama, with Granite3, Qwen3, Gemma 3 models
+ * Speech Synthesis
+   * Coqui, https://github.com/coqui-ai
+   * espeak-ng
+
+Coqui produces much better results but is no longer maintained. Works up to Python3.11 and is usable as a local service.
+
+All services could be replaced by cloud services, e.g. from deepinfra:
+
+  * Transscribe: https://deepinfra.com/openai/whisper-large-v3-turbo/api
+  * LLM: https://deepinfra.com/Qwen/Qwen3-14B
+  * Synthesize: https://deepinfra.com/hexgrad/Kokoro-82M
+
+
+
+# Build
+
+> git clone 
+> npm install 
+
+Test/devel:
+
+> npm run dev
+
+dev mode always calls PHP routines at demonstrator site!
+
+Build: 
+
+Check target subdomain: "base" in vite.config.js 
+
+> npm run build
+> scp -r dist/* <your host directory>
+> scp -r php <your host directory>
+
+
+
+
+
