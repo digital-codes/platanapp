@@ -150,4 +150,3 @@ onMounted(() => {
   }
 }
 </style>
-</template>
