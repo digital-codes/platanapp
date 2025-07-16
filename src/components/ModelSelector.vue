@@ -90,4 +90,3 @@ const updateModel = (event: Event) => {
   }
 }
 </style>
-</template>
