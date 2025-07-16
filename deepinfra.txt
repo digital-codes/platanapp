@@ -1,0 +1,7 @@
+https://deepinfra.com/openai/whisper-large-v3-turbo/api
+
+https://deepinfra.com/hexgrad/Kokoro-82M
+
+https://deepinfra.com/Qwen/Qwen3-14B
+
+
