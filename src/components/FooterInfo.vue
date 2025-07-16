@@ -182,4 +182,3 @@ const toggleExpanded = () => {
   }
 }
 </style>
-</template>
