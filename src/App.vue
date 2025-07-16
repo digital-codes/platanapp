@@ -18,6 +18,7 @@ const hasResponse = ref<boolean>(false)
 const modelResponse = ref<string>("")
 const audioUrl = ref<string | null>(null)
 const devInfo = ref<string | null>(null)
+const model = ref<string>('granite3.3:2b') // Default model
 
 
 const convertUrl = import.meta.env.MODE !== 'development'
@@ -74,7 +75,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ text: transcript.value }) // Specify the model here
+            body: JSON.stringify({ text: transcript.value, model: model.value }) // Specify the model here
           })
           const data3 = await response.json()
           console.log('Whisper response available') // , data3)
@@ -125,6 +126,13 @@ const resetAudio = () => {
   console.log('Audio reset')
 }
 
+const updateModel = (event: Event) => {
+  const selectElement = event.target as HTMLSelectElement
+  const selectedModel = selectElement.value
+  console.log('Selected model:', selectedModel)
+  model.value = selectedModel
+  // You can add logic here to handle the model change if needed
+}
 
 onMounted(async () => {
   await logDeviceInfo()
@@ -134,6 +142,14 @@ onMounted(async () => {
 </script>
 
 <template>
+  <img src="./assets/llama.png" class="logo" alt="Logo" />
+  <div class="modelselect">
+  <select v-model="model" @change="updateModel">
+    <option value="granite3.3:2b">Granite 3</option>
+    <option value="gemma3:4b">Gemma 3</option>
+    <option value="qwen3:4b">Qwen 3</option>
+  </select>
+</div>
   <AudioIn @upload-result="handleUploadResult" @reset="resetAudio" />
   <div v-if="hasAudio">
     <p>Audio is beeing transcribed ...</p>
@@ -171,4 +187,26 @@ onMounted(async () => {
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
 }
+
+.modelselect {
+  margin: 1em;
+}
+  select {
+  padding: 0.5em;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+  select:hover {
+  border-color: #42b883;
+  background-color: #f0f0f0;
+}
+  select:focus {
+  outline: none;    
+  border-color: #42b883;
+  box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.2);
+} 
+
 </style>

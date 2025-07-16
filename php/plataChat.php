@@ -89,6 +89,10 @@ if ($returnCode !== 0) {
     exit;
 }
 
+// trim output 
+$output = preg_replace('/<think>.*?<\/think>/is', '', $output);
+$output = trim($output);
+
 // Synthesize the output with espeak-ng
 $audioFile = $audioDir . '/response.wav';
 
