@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import AudioIn from './components/AudioIn.vue'
+import WelcomeHeader from './components/WelcomeHeader.vue'
+import SensorWidget from './components/SensorWidget.vue'
+import ChatBubble from './components/ChatBubble.vue'
+import StatusIndicator from './components/StatusIndicator.vue'
+import AudioRecorder from './components/AudioRecorder.vue'
+import ModelSelector from './components/ModelSelector.vue'
+import FooterInfo from './components/FooterInfo.vue'
 import { onMounted } from 'vue'
 
 import { Device } from '@capacitor/device';
@@ -17,8 +23,8 @@ const transcript  = ref<string>("")
 const hasResponse = ref<boolean>(false)
 const modelResponse = ref<string>("")
 const audioUrl = ref<string | null>(null)
-const devInfo = ref<string | null>(null)
 const model = ref<string>('granite3.3:2b') // Default model
+const chatHistory = ref<Array<{type: 'user' | 'assistant', message: string, audioUrl?: string}>>([])
 
 
 const convertUrl = import.meta.env.MODE !== 'development'
@@ -68,6 +74,12 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
         }
         transcript.value = data2.text
         hasText.value = true
+        
+        // Add user message to chat history
+        chatHistory.value.push({
+          type: 'user',
+          message: transcript.value
+        })
 
         try {
           const response = await fetch(modelUrl, {
@@ -90,24 +102,41 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
             const audioBase64 = data3.audio
             const audioBlob = new Blob([Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0))], { type: 'audio/wav' })
             audioUrl.value = URL.createObjectURL(audioBlob)
-            //const audio = new Audio(audioUrl)
-            //audio.play()
+            
+            // Add assistant message to chat history
+            chatHistory.value.push({
+              type: 'assistant',
+              message: modelResponse.value,
+              audioUrl: audioUrl.value
+            })
           }
         } catch (error) {
           console.error('Error fetching model response:', error)
           modelResponse.value = "Error fetching model response."
+          chatHistory.value.push({
+            type: 'assistant',
+            message: "Sorry, I encountered an error while processing your request."
+          })
         }
 
 
       } catch (error) {
         console.error('Error fetching whisper response:', error)
         modelResponse.value = "Error fetching whisper response."
+        chatHistory.value.push({
+          type: 'assistant',
+          message: "Sorry, I couldn't understand your audio. Please try again."
+        })
       }
 
 
     } catch (error) {
       console.error('Error fetching model response:', error)
       modelResponse.value = "Error fetching model response."
+      chatHistory.value.push({
+        type: 'assistant',
+        message: "Sorry, I encountered a technical issue. Please try again."
+      })
     }
 
 
@@ -127,87 +156,170 @@ const resetAudio = () => {
   console.log('Audio reset')
 }
 
-const updateModel = (event: Event) => {
-  const selectElement = event.target as HTMLSelectElement
-  const selectedModel = selectElement.value
-  console.log('Selected model:', selectedModel)
-  model.value = selectedModel
-  // You can add logic here to handle the model change if needed
+const playAudio = (audioUrl: string) => {
+  const audio = new Audio(audioUrl)
+  audio.play()
 }
 
 onMounted(async () => {
   await logDeviceInfo()
-  devInfo.value = JSON.stringify(await Device.getInfo(), null, 2)
 })
 
 </script>
 
 <template>
-  <img src="./assets/llama.png" class="logo" alt="Logo" />
-  <div class="modelselect">
-  <select v-model="model" @change="updateModel">
-    <option value="granite3.3:2b">Granite 3</option>
-    <option value="gemma3:4b">Gemma 3</option>
-    <option value="qwen3:4b">Qwen 3</option>
-  </select>
-</div>
-  <AudioIn @upload-result="handleUploadResult" @reset="resetAudio" />
-  <div v-if="hasAudio">
-    <p>Audio is beeing transcribed ...</p>
-  </div>
-  <div v-if="hasText">
-    <p>{{ transcript }}</p>
-    <p>Asking Model ...</p>
-  </div>
-  <div v-if="hasResponse">
-    <h2>Model says</h2>
-    <p>{{ modelResponse }}</p>
-    <div v-if="audioUrl">
-      <audio :src="audioUrl" controls></audio>
+  <div class="app-container">
+    <WelcomeHeader />
+    
+    <div class="main-content">
+      <SensorWidget />
+      
+      <ModelSelector v-model="model" />
+      
+      <div class="chat-area">
+        <div v-if="chatHistory.length === 0" class="welcome-message">
+          <div class="welcome-icon">👋</div>
+          <h3>Hello! I'm Papperlapp</h3>
+          <p>I'm a friendly plane tree who loves to chat about AI and environmental protection. Press the microphone button below to start our conversation!</p>
+        </div>
+        
+        <div class="chat-messages">
+          <ChatBubble
+            v-for="(message, index) in chatHistory"
+            :key="index"
+            :type="message.type"
+            :message="message.message"
+            :audioUrl="message.audioUrl"
+            @play-audio="playAudio"
+          />
+        </div>
+        
+        <StatusIndicator
+          :visible="hasAudio && !hasText"
+          type="transcribing"
+          message="Audio is being transcribed..."
+        />
+        
+        <StatusIndicator
+          :visible="hasText && !hasResponse"
+          type="thinking"
+          message="Papperlapp is thinking about your question..."
+        />
+      </div>
+      
+      <AudioRecorder 
+        @upload-result="handleUploadResult" 
+        @reset="resetAudio" 
+      />
     </div>
+    
+    <FooterInfo />
   </div>
-  <div v-if="devInfo">
-    <h2>Device Info</h2>
-    <pre>{{ devInfo }}</pre>
-  </div>
-
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f8f0 0%, #e8f5e8 100%);
+  display: flex;
+  flex-direction: column;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+.main-content {
+  flex: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+  width: 100%;
 }
 
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+.chat-area {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
 }
 
-.modelselect {
-  margin: 1em;
+.welcome-message {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #2d5016;
 }
-  select {
-  padding: 0.5em;
-  font-size: 1em;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-  cursor: pointer;
-}
-  select:hover {
-  border-color: #42b883;
-  background-color: #f0f0f0;
-}
-  select:focus {
-  outline: none;    
-  border-color: #42b883;
-  box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.2);
-} 
 
+.welcome-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.welcome-message h3 {
+  font-size: 1.5rem;
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+.welcome-message p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.chat-messages {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 0 0.75rem 1.5rem;
+  }
+  
+  .chat-area {
+    padding: 1rem;
+    border-radius: 1rem;
+    min-height: 300px;
+  }
+  
+  .welcome-message {
+    padding: 1.5rem 0.75rem;
+  }
+  
+  .welcome-icon {
+    font-size: 2.5rem;
+  }
+  
+  .welcome-message h3 {
+    font-size: 1.25rem;
+  }
+  
+  .welcome-message p {
+    font-size: 0.9rem;
+  }
+  
+  .chat-messages {
+    max-height: 400px;
+  }
+}
 </style>
