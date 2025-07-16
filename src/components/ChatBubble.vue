@@ -12,7 +12,7 @@
       <div class="bubble-message">
         <p>{{ message }}</p>
         <div v-if="audioUrl && type === 'assistant'" class="audio-controls">
-          <button @click="playAudio" class="play-button">
+          <button @click="playAudio(audioUrl)" class="play-button">
             <span class="play-icon">🔊</span>
             Replay Answer
           </button>
@@ -28,6 +28,8 @@
 </template>
 
 <script setup lang="ts">
+import { defineEmits } from 'vue'
+
 interface Props {
   type: 'user' | 'assistant'
   message: string
@@ -37,9 +39,12 @@ interface Props {
 }
 
 defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'play-audio', audioUrl: string): void
+}>()
 
-const playAudio = () => {
-  // Audio playback will be handled by parent component
+const playAudio = (audioUrl: string) => {
+  emit('play-audio', audioUrl)
 }
 </script>
 
