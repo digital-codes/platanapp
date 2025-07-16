@@ -1,4 +1,4 @@
-<template>
+<template> 
   <header class="welcome-header">
     <div class="header-content">
       <div class="avatar-container">
