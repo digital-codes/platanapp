@@ -21,7 +21,7 @@
     <div v-if="expanded" class="expanded-content">
       <div class="info-section">
         <h4>Team</h4>
-        <p>Developed by Clemens, Stefan, and Phillip at the AI Ideenwerkstatt für Umweltschutz IMPACT HUB. Original concept by City Lab.</p>
+        <p>Developed by OK Lab Karlsruhe. Original concept by City Lab.</p>
       </div>
       
       <div class="info-section">
