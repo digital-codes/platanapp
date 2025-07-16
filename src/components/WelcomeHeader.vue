@@ -25,13 +25,13 @@
 
 <style scoped>
 .welcome-header {
-  background: linear-gradient(135deg, #2d5016 0%, #4a7c59 100%);
-  color: white;
+  background: linear-gradient(135deg, #f0f8f0 0%, #e8f5e8 100%);
+  color: #2d5016;
   padding: 2rem 1rem 1.5rem;
   text-align: center;
-  border-radius: 0 0 2rem 2rem;
+  border-radius: 0 0 1.5rem 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 20px rgba(45, 80, 22, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -120,7 +120,6 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   font-family: 'Georgia', serif;
 }
 
@@ -136,7 +135,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(45, 80, 22, 0.1);
   padding: 0.75rem 1rem;
   border-radius: 1rem;
   font-size: 0.9rem;
