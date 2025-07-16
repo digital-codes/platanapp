@@ -350,4 +350,3 @@ function stopRecording() {
   }
 }
 </style>
-</template>
