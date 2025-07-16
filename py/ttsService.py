@@ -10,8 +10,6 @@ device = "cpu"
 tts = TTS(model_name="tts_models/de/thorsten/tacotron2-DDC", progress_bar=False).to(device)
 #tts.tts_to_file(text="Ich bin eine Testnachricht.", file_path="output.wav")
 
-outpath = "/var/www/html/llama/platane/php/audio"
-
 app = Flask(__name__)
 
 
@@ -32,8 +30,8 @@ def handle_request():
             if file is None or not isinstance(file, str):
                 return jsonify({"error": "'file' key is required and must be a string."}), 400  
 
-            outFile = os.path.join(outpath, file)
-            result = tts.tts_to_file(text=text, file_path=outFile)
+            outFile = os.path.join(app.config['basedir'], file)
+            tts.tts_to_file(text=text, file_path=outFile)
             response = {
                 "status": "ok",
                 "filename": outFile,
@@ -46,8 +44,10 @@ def handle_request():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--port', type=int, default=9010)  
+    parser.add_argument('-b', '--basedir', type=str, default="/var/www/html/llama/platane/php/audio")  
     args = parser.parse_args()
 
+    app.config['basedir'] = args.basedir
     app.run(host='localhost', port=args.port)
 
 

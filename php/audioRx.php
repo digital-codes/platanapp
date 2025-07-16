@@ -26,6 +26,7 @@ $deleted = [];
 $files = array_merge(
     glob($audioDir . '/*.webm'),
     glob($audioDir . '/*.wav'),
+    glob($audioDir . '/*.ogg'),
     glob($audioDir . '/*.txt')
 );
 
