@@ -22,30 +22,6 @@ function logError($message, $logFile) {
     file_put_contents($logFile, $entry, FILE_APPEND);
 }
 
-// clean up files first
-$now = time();
-$deleted = [];
-$files = array_merge(
-    glob($audioDir . '/*.webm'),
-    glob($audioDir . '/*.wav'),
-    glob($audioDir . '/*.txt')
-);
-
-foreach ($files as $file) {
-    if (is_file($file)) {
-        $fileMTime = filemtime($file);
-
-        // Older than 10 minutes?
-        if ($now - $fileMTime > 600) {
-            if (unlink($file)) {
-                $deleted[] = basename($file);
-            }
-        }
-    }
-}
-
-logError('Deleted files: ' . implode(', ', $deleted), $logFile);
-
 $data = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($data['filename'])) {

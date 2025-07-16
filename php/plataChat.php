@@ -17,7 +17,8 @@ $audioDir = __DIR__ . '/audio';
 $logFile = __DIR__ . '/platachat.log';
 
 // Helper to log errors
-function logError($message, $logFile) {
+function logError($message, $logFile)
+{
     $entry = sprintf("[%s] ERROR: %s\n", date('Y-m-d H:i:s'), $message);
     file_put_contents($logFile, $entry, FILE_APPEND);
 }
@@ -58,7 +59,7 @@ $descriptorSpec = [
     2 => ['pipe', 'w'],
 ];
 
-$process = proc_open("ollama run $model", $descriptorSpec, $pipes,null, $env);
+$process = proc_open("ollama run $model", $descriptorSpec, $pipes, null, $env);
 
 if (!is_resource($process)) {
     http_response_code(500);
@@ -78,8 +79,8 @@ fclose($pipes[2]);
 $returnCode = proc_close($process);
 
 if ($returnCode !== 0) {
-	http_response_code(500);
-	logError("Ollama failed on: " . $modelPrompt,$logFile);
+    http_response_code(500);
+    logError("Ollama failed on: " . $modelPrompt, $logFile);
 
     echo json_encode([
         'error' => 'Ollama execution failed',
@@ -93,38 +94,86 @@ if ($returnCode !== 0) {
 $output = preg_replace('/<think>.*?<\/think>/is', '', $output);
 $output = trim($output);
 
-// Synthesize the output with espeak-ng
-$audioFile = $audioDir . '/response.wav';
 
-// Ensure audio directory exists
-if (!is_dir($audioDir)) {
-    if (!mkdir($audioDir, 0777, true)) {
-        logError('Failed to create audio directory', $logFile);
+// check synthesizer 
+$port = 9010;
+$host = 'localhost';
+$ttsUrl = "http://$host:$port/transscribe"; // or any endpoint you defined
+
+// 1. Check if service is responding
+$ch = curl_init($ttsUrl);
+curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+if ($httpCode !== 200) {
+    logError("TTS service returned: $httpCode", $logFile);
+    // Synthesize the output with espeak-ng
+    $audioFile = $audioDir . '/response.wav';
+    $synth = "espeak-ng";
+
+    // Escape output for shell
+    $escapedOutput = escapeshellarg($output);
+
+    // Build espeak-ng command
+    $espeakCmd = "espeak-ng -v mb-de2 -w " . escapeshellarg($audioFile) . " $escapedOutput";
+
+    // Execute espeak-ng
+    exec($espeakCmd, $espeakOutput, $espeakReturn);
+
+    if ($espeakReturn !== 0) {
+        logError("espeak-ng failed: " . implode("\n", $espeakOutput), $logFile);
         http_response_code(500);
-        echo json_encode(['error' => 'Failed to create audio directory']);
+        echo json_encode(['error' => 'espeak-ng synthesis failed']);
         exit;
     }
-}
+} else {
+    // If TTS service is running, use it to synthesize the output
+    $audioFile = 'response.wav'; // plain name here 
+    $synth = "coqui";
+    $postFields = [
+        'text' => $output,
+        'file' => $audioFile
+    ];
 
-// Escape output for shell
-$escapedOutput = escapeshellarg($output);
+    // Prepare cURL for POST
+    $ch = curl_init($ttsUrl);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));    
 
-// Build espeak-ng command
-$espeakCmd = "espeak-ng -v mb-de2 -w " . escapeshellarg($audioFile) . " $escapedOutput";
+    // Execute POST request
+    $ttsResponse = curl_exec($ch);
+    $ttsHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $ttsError = curl_error($ch);
+    curl_close($ch);
 
-// Execute espeak-ng
-exec($espeakCmd, $espeakOutput, $espeakReturn);
+    if ($ttsHttpCode !== 200 || !$ttsResponse) {
+        logError("TTS service failed: $ttsError", $logFile);
+        http_response_code(500);
+        echo json_encode(['error' => 'TTS service synthesis failed']);
+        exit;
+    }
+    // Try to extract filename from TTS response if present (assume JSON with 'filename')
+    $ttsJson = json_decode($ttsResponse, true);
+    if (is_array($ttsJson) && isset($ttsJson['filename'])) {
+        $audioFile = $ttsJson['filename'];
+    } else {
+        logError("TTS did not return filename", $logFile);
+        http_response_code(500);
+        echo json_encode(['error' => 'TTS service synthesis failed (missing filename)']);
+        exit;
+    }
 
-if ($espeakReturn !== 0) {
-    logError("espeak-ng failed: " . implode("\n", $espeakOutput), $logFile);
-    http_response_code(500);
-    echo json_encode(['error' => 'espeak-ng synthesis failed']);
-    exit;
 }
 
 $audioData = file_get_contents($audioFile);
 $audioBase64 = base64_encode($audioData);
-echo json_encode(value: ['status' => 'ok', 'text' => $output, "audio" => $audioBase64]);
+echo json_encode(value: ['status' => 'ok', 'text' => $output, "audio" => $audioBase64, "synth" => $synth]);
 
 
 

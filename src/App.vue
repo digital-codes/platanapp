@@ -78,10 +78,11 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
             body: JSON.stringify({ text: transcript.value, model: model.value }) // Specify the model here
           })
           const data3 = await response.json()
-          console.log('Whisper response available') // , data3)
+          console.log('Model response available') // , data3)
           if (data3.status !== "ok") {
-            throw new Error('Whisper failed ' + data3.status)
+            throw new Error('Model failed ' + data3.status)
           }
+          console.log('Audio from ' + data3.synth) // , data3)
           modelResponse.value = data3.text
           hasResponse.value = true
 
