@@ -224,4 +224,3 @@ const playAudio = () => {
   }
 }
 </style>
-</template>
