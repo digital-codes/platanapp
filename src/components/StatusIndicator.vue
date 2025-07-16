@@ -143,4 +143,3 @@ defineProps<Props>()
   }
 }
 </style>
-</template>
