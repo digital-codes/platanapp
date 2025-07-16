@@ -6,7 +6,7 @@ The entire system runs on a middle-class VM (8 cores, 32GB RAM, no GPU) with acc
 
 # Demo
 
-https://papperlapp.netlify.app/
+https://llama.ok-lab-karlsruhe.de/platane/
 
 **Note: the demo uses GERMAN language for input**
 
