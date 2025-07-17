@@ -88,5 +88,37 @@ Check target subdomain: "base" in vite.config.js
 
 
 
+# Extensions
+## Climate/Wheather data
+
+### DWD, Rheinstetten
+rheinstetten 
+Rheinstetten;48.97;8.33;118;Germany, Höhe 116m
+
+ID: 4177;
+
+
+temperatur now:
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/now/10minutenwerte_TU_04177_now.zip
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/meta_data/Meta_Daten_zehn_min_tu_04177.zip
+
+
+wind now:
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/wind/now/10minutenwerte_wind_04177_now.zip
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/wind/meta_data/Meta_Daten_zehn_min_ff_04177.zip
+
+
+
+rain now:
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/precipitation/now/10minutenwerte_nieder_04177_now.zip
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/precipitation/meta_data/Meta_Daten_zehn_min_rr_04177.zip
+
+daily (2 jahre bei temp, etc):
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/soil_temperature/recent/EB_Tageswerte_Beschreibung_Stationen.txt
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/soil_temperature/recent/tageswerte_EB_04177_akt.zip
+
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/recent/tageswerte_KL_04177_akt.zip
+https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/recent/KL_Tageswerte_Beschreibung_Stationen.txt
+
 
 
