@@ -4,11 +4,17 @@
       <div class="project-badges">
         <div class="badge">
           <span class="badge-icon">🌱</span>
-          <span class="badge-text">OK Lab Karlsruhe</span>
+          <span class="badge-text">
+            <a href="https://ok-lab-karlsruhe.de" target=_blank>OK Lab Karlsruhe</a>
+          </span>
         </div>
         <div class="badge">
           <span class="badge-icon">🤖</span>
-          <span class="badge-text">{{ $t('aibadge') }}</span>
+          <span class="badge-text">
+            <a href="https://www.ki-ideenwerkstatt.de" target=_blank>
+            {{ $t('aibadge') }}
+            </a>
+          </span>
         </div>
       </div>
       
