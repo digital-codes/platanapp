@@ -1,0 +1,18 @@
+{
+  "en": {
+    "papperlapp": "Papperlapp",
+    "welcomeheader": "Hello! I'm Papperlapp!",
+    "intro":"I'm a friendly plane tree who loves to chat about AI and environmental protection. Press the microphone button below to start our conversation!",
+    "taptospeak": "Tap to Speak",
+    "recording": "Recording...",
+    "recordingready": "Recording ready"
+  },
+  "de": {
+    "papperlapp": "Papperlapp",
+    "welcomeheader": "Hallo! Ich bin Papperlapp!",
+    "intro": "Ich bin eine freundliche Platane, die gerne über KI und Umweltschutz plaudert. Drücke auf den Mikrofon-Knopf unten, um unser Gespräch zu starten!",
+    "taptospeak": "Zum Sprechen klicken",
+    "recording": "Aufnahme läuft...",
+    "recordingready": "Aufnahme bereit"
+  }
+}

@@ -14,7 +14,7 @@
             <div class="wave wave-3"></div>
           </div>
           <span class="button-text">
-            {{ isRecording ? 'Recording...' : 'Tap to Speak' }}
+            {{ isRecording ? $t('recording') : $t('taptospeak') }}
           </span>
         </div>
       </button>
@@ -41,7 +41,7 @@
     <div v-if="audioUrl && !isRecording" class="playback-section">
       <div class="playback-info">
         <span class="file-icon">🎵</span>
-        <span>Recording ready</span>
+        <span>{{ $t('recordingready') }}</span>
       </div>
       <audio :src="audioUrl" controls class="audio-player"></audio>
     </div>
@@ -64,7 +64,6 @@ const uploadUrl = import.meta.env.MODE !== 'development'
   ? '/platane/php/audioRx.php'
   : 'https://llama.ok-lab-karlsruhe.de/platane/php/audioRx.php'
   
-import { defineEmits } from 'vue'
 const emit = defineEmits<{
   (e: 'upload-result', result: { success: boolean, data?: any, error?: any }): void
   (e: 'reset'): void

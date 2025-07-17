@@ -167,6 +167,8 @@ onMounted(async () => {
 
 </script>
 
+
+
 <template>
   <div class="app-container">
     <WelcomeHeader />
@@ -179,8 +181,8 @@ onMounted(async () => {
       <div class="chat-area">
         <div v-if="chatHistory.length === 0" class="welcome-message">
           <div class="welcome-icon">👋</div>
-          <h3>Hello! I'm Papperlapp</h3>
-          <p>I'm a friendly plane tree who loves to chat about AI and environmental protection. Press the microphone button below to start our conversation!</p>
+          <h3> {{ $t('welcomeheader') }}</h3>
+          <p>{{ $t('intro') }}</p>
         </div>
         
         <div class="chat-messages">
