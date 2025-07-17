@@ -10,6 +10,7 @@ import FooterInfo from './components/FooterInfo.vue'
 import { onMounted } from 'vue'
 
 import { Device } from '@capacitor/device';
+import { Geolocation } from '@capacitor/geolocation';
 
 const logDeviceInfo = async () => {
   const info = await Device.getInfo();
@@ -19,12 +20,12 @@ const logDeviceInfo = async () => {
 
 const hasAudio = ref<boolean>(false)
 const hasText = ref<boolean>(false)
-const transcript  = ref<string>("")
+const transcript = ref<string>("")
 const hasResponse = ref<boolean>(false)
 const modelResponse = ref<string>("")
 const audioUrl = ref<string | null>(null)
 const model = ref<string>('granite3.3:2b') // Default model
-const chatHistory = ref<Array<{type: 'user' | 'assistant', message: string, audioUrl?: string}>>([])
+const chatHistory = ref<Array<{ type: 'user' | 'assistant', message: string, audioUrl?: string }>>([])
 
 
 const convertUrl = import.meta.env.MODE !== 'development'
@@ -74,7 +75,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
         }
         transcript.value = data2.text
         hasText.value = true
-        
+
         // Add user message to chat history
         chatHistory.value.push({
           type: 'user',
@@ -102,7 +103,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
             const audioBase64 = data3.audio
             const audioBlob = new Blob([Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0))], { type: 'audio/wav' })
             audioUrl.value = URL.createObjectURL(audioBlob)
-            
+
             // Add assistant message to chat history
             chatHistory.value.push({
               type: 'assistant',
@@ -150,7 +151,7 @@ const resetAudio = () => {
   hasAudio.value = false
   hasText.value = false
   hasResponse.value = false
-  transcript.value  = ""
+  transcript.value = ""
   modelResponse.value = ""
   audioUrl.value = null
   console.log('Audio reset')
@@ -163,6 +164,15 @@ const playAudio = (audioUrl: string) => {
 
 onMounted(async () => {
   await logDeviceInfo()
+  try {
+
+    const geoLoc = await Geolocation.getCurrentPosition()
+    const pnt = [geoLoc.coords.latitude, geoLoc.coords.longitude]
+    console.log('Current position:', geoLoc, pnt);
+  } catch (error) {
+    console.error('Geolocation error:', error)
+  }
+
 })
 
 </script>
@@ -172,49 +182,33 @@ onMounted(async () => {
 <template>
   <div class="app-container">
     <WelcomeHeader />
-    
+
     <div class="main-content">
       <SensorWidget />
-      
+
       <ModelSelector v-model="model" />
-      
+
       <div class="chat-area">
         <div v-if="chatHistory.length === 0" class="welcome-message">
           <div class="welcome-icon">👋</div>
           <h3> {{ $t('welcomeheader') }}</h3>
           <p>{{ $t('intro') }}</p>
         </div>
-        
+
         <div class="chat-messages">
-          <ChatBubble
-            v-for="(message, index) in chatHistory"
-            :key="index"
-            :type="message.type"
-            :message="message.message"
-            :audioUrl="message.audioUrl"
-            @play-audio="playAudio"
-          />
+          <ChatBubble v-for="(message, index) in chatHistory" :key="index" :type="message.type"
+            :message="message.message" :audioUrl="message.audioUrl" @play-audio="playAudio" />
         </div>
-        
-        <StatusIndicator
-          :visible="hasAudio && !hasText"
-          type="transcribing"
-          message="Audio is being transcribed..."
-        />
-        
-        <StatusIndicator
-          :visible="hasText && !hasResponse"
-          type="thinking"
-          message="Papperlapp is thinking about your question..."
-        />
+
+        <StatusIndicator :visible="hasAudio && !hasText" type="transcribing" message="Audio is being transcribed..." />
+
+        <StatusIndicator :visible="hasText && !hasResponse" type="thinking"
+          message="Papperlapp is thinking about your question..." />
       </div>
-      
-      <AudioRecorder 
-        @upload-result="handleUploadResult" 
-        @reset="resetAudio" 
-      />
+
+      <AudioRecorder @upload-result="handleUploadResult" @reset="resetAudio" />
     </div>
-    
+
     <FooterInfo />
   </div>
 </template>
@@ -297,29 +291,29 @@ onMounted(async () => {
   .main-content {
     padding: 0 0.75rem 1.5rem;
   }
-  
+
   .chat-area {
     padding: 1rem;
     border-radius: 1rem;
     min-height: 300px;
   }
-  
+
   .welcome-message {
     padding: 1.5rem 0.75rem;
   }
-  
+
   .welcome-icon {
     font-size: 2.5rem;
   }
-  
+
   .welcome-message h3 {
     font-size: 1.25rem;
   }
-  
+
   .welcome-message p {
     font-size: 0.9rem;
   }
-  
+
   .chat-messages {
     max-height: 400px;
   }

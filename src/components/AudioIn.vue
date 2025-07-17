@@ -25,7 +25,6 @@ const uploadUrl = import.meta.env.MODE !== 'development'
 
 
 
-import { defineEmits } from 'vue'
 const emit = defineEmits<{
   (e: 'upload-result', result: { success: boolean, data?: any, error?: any }): void
   (e: 'reset'): void
