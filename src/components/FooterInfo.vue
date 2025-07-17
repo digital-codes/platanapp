@@ -8,30 +8,30 @@
         </div>
         <div class="badge">
           <span class="badge-icon">🤖</span>
-          <span class="badge-text">AI for Environment</span>
+          <span class="badge-text">{{ $t('aibadge') }}</span>
         </div>
       </div>
       
       <button @click="toggleExpanded" class="expand-button">
-        <span>{{ expanded ? 'Less Info' : 'More Info' }}</span>
+        <span>{{ expanded ? $t('lessinfo') : $t('moreinfo') }}</span>
         <span class="expand-icon" :class="{ 'expanded': expanded }">▼</span>
       </button>
     </div>
     
     <div v-if="expanded" class="expanded-content">
       <div class="info-section">
-        <h4>Team</h4>
-        <p>Developed by OK Lab Karlsruhe. Original concept by City Lab.</p>
+        <h4>{{$t('teamhdr')}}</h4>
+        <p>{{$t('teamdesc')}}</p>
       </div>
       
       <div class="info-section">
-        <h4>Technology</h4>
-        <p>Built with Vue.js, powered by local AI models (Whisper, Ollama) and open-source text-to-speech technology.</p>
+        <h4>{{$t('techhdr')}}</h4>
+        <p>{{$t('techdesc')}}</p>
       </div>
       
       <div class="info-section">
-        <h4>Privacy & Legal</h4>
-        <p>All conversations are processed locally and automatically deleted. No data is stored or transmitted to external services.</p>
+        <h4>{{$t('privhdr')}}</h4>
+        <p>{{$t('privdesc')}}</p>
       </div>
     </div>
   </footer>

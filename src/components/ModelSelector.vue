@@ -1,15 +1,15 @@
 <template>
   <div class="model-selector">
-    <label for="model-select" class="selector-label">AI Model:</label>
+    <label for="model-select" class="selector-label">{{ $t('aimodel') }}:</label>
     <select 
       id="model-select"
       :value="modelValue"
       @change="updateModel"
       class="model-select"
     >
-      <option value="granite3.3:2b">Granite 3 (Fast)</option>
-      <option value="gemma3:4b">Gemma 3 (Balanced)</option>
-      <option value="qwen3:4b">Qwen 3 (Advanced)</option>
+      <option value="granite3.3:2b">Granite 3 ({{$t('fast')}})</option>
+      <option value="gemma3:4b">Gemma 3 ({{$t('balanced')}})</option>
+      <option value="qwen3:4b">Qwen 3 ({{$t('advanced')}})</option>
     </select>
   </div>
 </template>

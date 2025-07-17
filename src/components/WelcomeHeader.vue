@@ -13,12 +13,12 @@
       </div>
       <div class="title-section">
         <h1 class="main-title">Papperlapp</h1>
-        <p class="subtitle">The Chatting Plane Tree</p>
+        <p class="subtitle">{{ $t('welcometitle') }}</p>
       </div>
     </div>
     <div class="privacy-note">
       <div class="privacy-icon">🔒</div>
-      <p>All data stays local and is deleted after the conversation</p>
+      <p>{{ $t('datainfo') }}</p>
     </div>
   </header>
 </template>

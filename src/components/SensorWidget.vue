@@ -1,12 +1,12 @@
 <template>
   <div class="sensor-widget">
-    <h3 class="widget-title">Environmental Data</h3>
+    <h3 class="widget-title">{{ $t('sensorheader') }}</h3>
     <div class="sensor-grid">
       <div class="sensor-item">
         <div class="sensor-icon temperature">🌡️</div>
         <div class="sensor-data">
           <span class="sensor-value">{{ Math.round(temperature) }}°C</span>
-          <span class="sensor-label">Temperature</span>
+          <span class="sensor-label">{{ $t('temperature')}}</span>
         </div>
       </div>
       
@@ -14,7 +14,7 @@
         <div class="sensor-icon moisture">💧</div>
         <div class="sensor-data">
           <span class="sensor-value">{{ Math.round(soilMoisture) }}%</span>
-          <span class="sensor-label">Soil Moisture</span>
+          <span class="sensor-label">{{ $t('soilmoisture') }}</span>
         </div>
       </div>
       
@@ -22,7 +22,7 @@
         <div class="sensor-icon rainfall">🌧️</div>
         <div class="sensor-data">
           <span class="sensor-value">{{ Math.round(rainfall) }}mm</span>
-          <span class="sensor-label">Rainfall (7d)</span>
+          <span class="sensor-label">{{ $t('rainfall') }} (7d)</span>
         </div>
       </div>
     </div>
