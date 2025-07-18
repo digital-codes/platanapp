@@ -32,7 +32,9 @@
     "transscribing":"Audio is being transcribed...",
     "someerror":"Sorry, I encountered an error while processing your request.",
     "audioerror":"Sorry, I couldn't understand your audio. Please try again.",
-    "techerror":"Sorry, I encountered a technical issue. Please try again."
+    "techerror":"Sorry, I encountered a technical issue. Please try again.",
+    "followcheck": "Start over? (else continue chat)",
+    "startover": "Start a new conversation"
   },
   "de": {
     "papperlapp": "Papperlapp",
@@ -67,6 +69,8 @@
     "transscribing": "Audio wird transkribiert...",
     "someerror": "Entschuldigung, ich hatte ein Problem bei der Verarbeitung deiner Anfrage.",
     "audioerror": "Entschuldigung, ich konnte dein Audio nicht verstehen. Bitte versuche es erneut.",
-    "techerror": "Entschuldigung, ich hatte ein technisches Problem. Bitte versuche es erneut."
+    "techerror": "Entschuldigung, ich hatte ein technisches Problem. Bitte versuche es erneut.",
+    "followcheck": "Neue Unterhaltung? (Sonst fortsetzen)",
+    "startover": "Neue Unterhaltung starten"
   }
 }

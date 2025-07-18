@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { watch } from 'vue'
+import { watch, nextTick } from 'vue'
 
 import WelcomeHeader from './components/WelcomeHeader.vue'
 import SensorWidget from './components/SensorWidget.vue'
@@ -10,6 +10,7 @@ import AudioRecorder from './components/AudioRecorder.vue'
 import ModelSelector from './components/ModelSelector.vue'
 import PromptSelector from './components/PromptSelector.vue'
 import FooterInfo from './components/FooterInfo.vue'
+import FollowCheck from './components/FollowCheck.vue'
 import { onMounted } from 'vue'
 
 import { useI18n } from 'vue-i18n'
@@ -29,6 +30,7 @@ const model = ref<string>('granite3.3:2b') // Default model
 const chatHistory = ref<Array<{ type: 'user' | 'assistant', message: string, audioUrl?: string }>>([])
 const chatSequence = ref<number>(1)
 const prompt = ref<string>("default") // Default prompt
+const processing = ref<boolean>(false)
 
 const convertUrl = import.meta.env.MODE !== 'development'
   ? '/platane/php/convert.php'
@@ -48,6 +50,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
   if (payload.success) {
     console.log('APP: Upload successful:', payload.data?.filename)
     hasAudio.value = true
+    processing.value = true
     try {
       const response = await fetch(convertUrl, {
         method: 'POST',
@@ -60,6 +63,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
       console.log('Converter response:', data)
       if (data.status !== "ok") {
         throw new Error('Convert failed ' + data.status)
+        initSession();
       }
 
       try {
@@ -74,6 +78,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
         console.log('Whisper response:', data2)
         if (data2.status !== "ok") {
           throw new Error('Whisper failed ' + data2.status)
+          initSession();
         }
         transcript.value = data2.text
         hasText.value = true
@@ -117,6 +122,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
           console.log('Model response available') // , data3)
           if (data3.status !== "ok") {
             throw new Error('Model failed ' + data3.status)
+            initSession();
           }
           console.log('Audio from ' + data3.synth) // , data3)
           modelResponse.value = data3.text
@@ -143,6 +149,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
             type: 'assistant',
             message: t("someerror")
           })
+          initSession();
         }
 
 
@@ -153,6 +160,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
           type: 'assistant',
           message: t("audioerror")
         })
+        initSession();
       }
 
 
@@ -163,12 +171,12 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
         type: 'assistant',
         message: t("techerror")
       })
+      initSession();
     }
-
-
     // You can add further logic here
   } else {
     console.error('Upload failed')
+    initSession();
   }
 }
 
@@ -187,7 +195,7 @@ const playAudio = (audioUrl: string) => {
   audio.play()
 }
 
-const initSession = (): void => {
+const initSession = async (): Promise<void> => {
   // Initialize session data
   const uniqueId = uuidv7();
   console.log('Unique ID:', uniqueId);
@@ -196,19 +204,31 @@ const initSession = (): void => {
   localStorage.setItem("seq", String(chatSequence.value));
   localStorage.setItem("model", model.value);
   localStorage.setItem("prompt", prompt.value);
+  chatHistory.value = []
+  processing.value = false
+  resetAudio();
+  console.log('Session initialized with ID:', uniqueId);
+  await nextTick(); // Ensure DOM updates before proceeding
 }
+
 
 const followSession = (): void => {
   chatSequence.value += 1;
   localStorage.setItem("seq", String(chatSequence.value));
+  processing.value = false
 }
 
+// check changes of model and prompt. reset on change
 watch(model, (newModel) => {
+  console.log("Model changed to:", newModel)
   localStorage.setItem("model", newModel)
+  initSession();
 })
+
 watch(prompt, (newPrompt) => {
   console.log("Prompt changed to:", newPrompt)
   localStorage.setItem("prompt", newPrompt)
+  initSession();
 })
 
 onMounted(async () => {
@@ -272,6 +292,8 @@ onMounted(async () => {
         <StatusIndicator :visible="hasText && !hasResponse" type="thinking"
           :message="$t('thinkingabout')" />
       </div>
+
+        <FollowCheck :visible="(chatHistory.length > 0) && !processing" :message="$t('followcheck')" @start-over="initSession"/>
 
       <AudioRecorder @upload-result="handleUploadResult" @reset="resetAudio" />
     </div>
