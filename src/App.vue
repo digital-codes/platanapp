@@ -13,7 +13,7 @@ import FooterInfo from './components/FooterInfo.vue'
 import { onMounted } from 'vue'
 
 import { useI18n } from 'vue-i18n'
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 
 import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
@@ -141,7 +141,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
           modelResponse.value = "Error fetching model response."
           chatHistory.value.push({
             type: 'assistant',
-            message: "Sorry, I encountered an error while processing your request."
+            message: t("someerror")
           })
         }
 
@@ -151,7 +151,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
         modelResponse.value = "Error fetching whisper response."
         chatHistory.value.push({
           type: 'assistant',
-          message: "Sorry, I couldn't understand your audio. Please try again."
+          message: t("audioerror")
         })
       }
 
@@ -161,7 +161,7 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
       modelResponse.value = "Error fetching model response."
       chatHistory.value.push({
         type: 'assistant',
-        message: "Sorry, I encountered a technical issue. Please try again."
+        message: t("techerror")
       })
     }
 
@@ -267,10 +267,10 @@ onMounted(async () => {
             :message="message.message" :audioUrl="message.audioUrl" @play-audio="playAudio" />
         </div>
 
-        <StatusIndicator :visible="hasAudio && !hasText" type="transcribing" message="Audio is being transcribed..." />
+        <StatusIndicator :visible="hasAudio && !hasText" type="transcribing" :message="$t('transscribing')" />
 
         <StatusIndicator :visible="hasText && !hasResponse" type="thinking"
-          message="Papperlapp is thinking about your question..." />
+          :message="$t('thinkingabout')" />
       </div>
 
       <AudioRecorder @upload-result="handleUploadResult" @reset="resetAudio" />

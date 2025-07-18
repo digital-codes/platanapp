@@ -14,7 +14,7 @@
         <div v-if="audioUrl && type === 'assistant'" class="audio-controls">
           <button @click="playAudio(audioUrl)" class="play-button">
             <span class="play-icon">🔊</span>
-            Replay Answer
+            {{ $t("playanswer") }}
           </button>
         </div>
       </div>

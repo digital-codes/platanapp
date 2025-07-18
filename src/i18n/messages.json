@@ -24,7 +24,15 @@
     "privdesc":"Input audio is deleted after the conversation. Generated text is stored for improving the AI model. No personal data is collected or shared.",
     "moreinfo":"More Info",
     "lessinfo":"Less Info",
-    "aibadge":"AI for Environment"
+    "aibadge":"AI for Environment",
+    "promptsel":"Select a prompt",
+    "playanswer": "Replay Answer",
+    "playquery": "Replay Question",
+    "thinkingabout": "Papperlapp is thinking about your question...",
+    "transscribing":"Audio is being transcribed...",
+    "someerror":"Sorry, I encountered an error while processing your request.",
+    "audioerror":"Sorry, I couldn't understand your audio. Please try again.",
+    "techerror":"Sorry, I encountered a technical issue. Please try again."
   },
   "de": {
     "papperlapp": "Papperlapp",
@@ -51,6 +59,14 @@
     "privdesc":"Input-Audio wird nach dem Gespräch gelöscht. Generierter Text wird zur Verbesserung des KI-Modells gespeichert. Es werden keine personenbezogenen Daten erfasst oder weitergegeben.",
     "moreinfo":"Mehr Infos",
     "lessinfo":"Weniger Infos",
-    "aibadge":"KI für die Umwelt"
+    "aibadge":"KI für die Umwelt",
+    "promptsel":"Promptauswahl",
+    "playanswer": "Antwort abspielen",
+    "playquery": "Frage abspielen",
+    "thinkingabout": "Papperlapp denkt über deine Frage nach...",
+    "transscribing": "Audio wird transkribiert...",
+    "someerror": "Entschuldigung, ich hatte ein Problem bei der Verarbeitung deiner Anfrage.",
+    "audioerror": "Entschuldigung, ich konnte dein Audio nicht verstehen. Bitte versuche es erneut.",
+    "techerror": "Entschuldigung, ich hatte ein technisches Problem. Bitte versuche es erneut."
   }
 }
