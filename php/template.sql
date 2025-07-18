@@ -28,9 +28,9 @@ CREATE TABLE `chats` (
   `seq` int(11) NOT NULL DEFAULT 1,
   `session` varchar(100) NOT NULL,
   `user` text NOT NULL,
-  `system` text,
-  `response` text DEFAULT NULL,
-  `ts` timestamp NOT NULL DEFAULT current_timestamp(),
+  `system` text DEFAULT NULL,
+  `response` text NOT NULL,
+  `os` text DEFAULT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
   UNIQUE KEY `chats_id_IDX` (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

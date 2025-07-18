@@ -1,5 +1,5 @@
 <?php
-function handleInsertRequest(array $data, bool $isLocal = null): string {
+function storeChatData(array $data, bool $isLocal = null): string {
 
     // Choose config file
     $iniPath = $isLocal ? './chats.ini' : '/var/www/files/platane/chats.ini';
