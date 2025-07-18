@@ -24,14 +24,15 @@ DROP TABLE IF EXISTS `chats`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `chats` (
-  `date` datetime NOT NULL DEFAULT current_timestamp(),
-  `seq` int(11) NOT NULL DEFAULT 1,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `session` varchar(100) NOT NULL,
+  `seq` int(11) NOT NULL DEFAULT 1,
   `user` text NOT NULL,
   `system` text DEFAULT NULL,
   `response` text NOT NULL,
-  `os` text DEFAULT NULL,
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `os` varchar(100) DEFAULT NULL,
+  `model` varchar(100) DEFAULT NULL,
+  `date` datetime NOT NULL DEFAULT current_timestamp(),
   UNIQUE KEY `chats_id_IDX` (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

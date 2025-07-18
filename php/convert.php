@@ -32,7 +32,8 @@ if (!isset($data['filename'])) {
 }
 
 $inputFile = $audioDir . "/" . $data['filename'];
-$outputFile = "converted.wav";
+$basename = pathinfo($data['filename'], PATHINFO_FILENAME);
+$outputFile = "converted_" . $basename . ".wav";
 
 if (!file_exists($inputFile)) {
     logError("Input file does not exist: $inputFile", $logFile);

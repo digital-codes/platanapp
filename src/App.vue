@@ -1,22 +1,23 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { watch } from 'vue'
+
 import WelcomeHeader from './components/WelcomeHeader.vue'
 import SensorWidget from './components/SensorWidget.vue'
 import ChatBubble from './components/ChatBubble.vue'
 import StatusIndicator from './components/StatusIndicator.vue'
 import AudioRecorder from './components/AudioRecorder.vue'
 import ModelSelector from './components/ModelSelector.vue'
+import PromptSelector from './components/PromptSelector.vue'
 import FooterInfo from './components/FooterInfo.vue'
 import { onMounted } from 'vue'
 
+import { useI18n } from 'vue-i18n'
+const { locale } = useI18n()
+
 import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
-
-const logDeviceInfo = async () => {
-  const info = await Device.getInfo();
-
-  console.log(info);
-};
+import { v7 as uuidv7 } from 'uuid';
 
 const hasAudio = ref<boolean>(false)
 const hasText = ref<boolean>(false)
@@ -26,7 +27,8 @@ const modelResponse = ref<string>("")
 const audioUrl = ref<string | null>(null)
 const model = ref<string>('granite3.3:2b') // Default model
 const chatHistory = ref<Array<{ type: 'user' | 'assistant', message: string, audioUrl?: string }>>([])
-
+const chatSequence = ref<number>(1)
+const prompt = ref<string>("default") // Default prompt
 
 const convertUrl = import.meta.env.MODE !== 'development'
   ? '/platane/php/convert.php'
@@ -82,13 +84,34 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
           message: transcript.value
         })
 
+        // prepare config for chat storage
+        // get session info
+        const session = localStorage.getItem("session") || null;
+        const seq = localStorage.getItem("seq") || "1";
+        const lat = localStorage.getItem("lat") || "0";
+        const lon = localStorage.getItem("lon") || "0";
+        const osinfo = localStorage.getItem("osinfo") || "0";
+        const language = locale.value || "de";
+        const prompt = localStorage.getItem("prompt") || "default";
+        const mdl = localStorage.getItem("model") || "granite3.3:2b";
+
         try {
           const response = await fetch(modelUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ text: transcript.value, model: model.value }) // Specify the model here
+            body: JSON.stringify({
+              text: transcript.value,
+              lang: language,
+              prompt: prompt,
+              model: mdl,
+              session: session,
+              seq: seq,
+              lat: lat,
+              lon: lon,
+              osinfo: osinfo
+            }) // Specify the model here
           })
           const data3 = await response.json()
           console.log('Model response available') // , data3)
@@ -110,6 +133,8 @@ async function handleUploadResult(payload: { success: boolean; data?: { filename
               message: modelResponse.value,
               audioUrl: audioUrl.value
             })
+            // increment chat sequence
+            followSession()
           }
         } catch (error) {
           console.error('Error fetching model response:', error)
@@ -162,13 +187,53 @@ const playAudio = (audioUrl: string) => {
   audio.play()
 }
 
-onMounted(async () => {
-  await logDeviceInfo()
-  try {
+const initSession = (): void => {
+  // Initialize session data
+  const uniqueId = uuidv7();
+  console.log('Unique ID:', uniqueId);
+  localStorage.setItem("session", uniqueId);
+  chatSequence.value = 1;
+  localStorage.setItem("seq", String(chatSequence.value));
+  localStorage.setItem("model", model.value);
+  localStorage.setItem("prompt", prompt.value);
+}
 
+const followSession = (): void => {
+  chatSequence.value += 1;
+  localStorage.setItem("seq", String(chatSequence.value));
+}
+
+watch(model, (newModel) => {
+  localStorage.setItem("model", newModel)
+})
+watch(prompt, (newPrompt) => {
+  console.log("Prompt changed to:", newPrompt)
+  localStorage.setItem("prompt", newPrompt)
+})
+
+onMounted(async () => {
+  console.log("Locale:", locale.value)
+  try {
+    initSession();
+  } catch (error) {
+    console.error('UUID generation error:', error)
+  }
+
+  try {
+    const info = await Device.getInfo();
+    console.log(info);
+    localStorage.setItem("osinfo", (info.operatingSystem || "") + " " + (info.osVersion || ""));
+    //localStorage.getItem("lastname");
+  } catch (error) {
+    console.error('Device info error:', error)
+  }
+
+  try {
     const geoLoc = await Geolocation.getCurrentPosition()
     const pnt = [geoLoc.coords.latitude, geoLoc.coords.longitude]
     console.log('Current position:', geoLoc, pnt);
+    localStorage.setItem("lat", geoLoc.coords.latitude.toString());
+    localStorage.setItem("lon", geoLoc.coords.longitude.toString());
   } catch (error) {
     console.error('Geolocation error:', error)
   }
@@ -187,6 +252,8 @@ onMounted(async () => {
       <SensorWidget />
 
       <ModelSelector v-model="model" />
+
+      <PromptSelector v-model="prompt"/>
 
       <div class="chat-area">
         <div v-if="chatHistory.length === 0" class="welcome-message">

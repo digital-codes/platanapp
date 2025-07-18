@@ -26,6 +26,8 @@ function storeChatData(array $data, bool $isLocal = null): string {
     $session = $data['session'] ?? null;
     $seq = isset($data['seq']) ? (int)$data['seq'] : null;
     $system = $data['system'] ?? null;
+    $osinfo = $data['osinfo'] ?? null;
+    $model = $data['model'] ?? null;
     $user = $data['user'] ?? null;
     $response = $data['response'] ?? null;
 
@@ -38,14 +40,16 @@ function storeChatData(array $data, bool $isLocal = null): string {
     }
 
     $stmt = $pdo->prepare("
-        INSERT INTO chats (session, seq, user, system, response)
-        VALUES (:session, :seq, :user, :system, :response)
+        INSERT INTO chats (session, seq, user, system, response, os, model)
+        VALUES (:session, :seq, :user, :system, :response, :osinfo, :model)
     ");
     $stmt->bindValue(':session', $session, PDO::PARAM_STR);
     $stmt->bindValue(':user', $user, PDO::PARAM_STR);
     $stmt->bindValue(':response', $response, PDO::PARAM_STR);
     $stmt->bindValue(':seq', $seq, PDO::PARAM_INT);
     $stmt->bindValue(':system', $system, $system === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+    $stmt->bindValue(':osinfo', $osinfo, $osinfo === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+    $stmt->bindValue(':model', $model, $model === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
 
     try {
         $stmt->execute();

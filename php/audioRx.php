@@ -101,6 +101,13 @@ if (!isset($data['audio'])) {
     exit;
 }
 
+if (!isset($data['filename'])) {
+    logError('Missing audio file', $logFile);
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing audio file']);
+    exit;
+}
+
 $audioData = base64_decode($data['audio']);
 if ($audioData === false) {
     logError('Invalid base64 audio', $logFile);
@@ -109,7 +116,7 @@ if ($audioData === false) {
     exit;
 }
 
-$filename = date('Ymd_His') . '.ogg';
+$filename = $data['filename'] . '.ogg';
 $filePath = "{$audioDir}/{$filename}";
 
 if (file_put_contents($filePath, $audioData) === false) {

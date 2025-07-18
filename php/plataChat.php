@@ -2,6 +2,10 @@
 // audioRx.php
 date_default_timezone_set('UTC');
 
+// database handler
+require_once("storeChat.php");
+
+
 // don't set     
 // header('Access-Control-Allow-Origin: *');
 // here. is already done in website config
@@ -13,6 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// Check if the request is from localhost
+$clientIp = $_SERVER['REMOTE_ADDR'];
+if ($clientIp === '127.0.0.1' || $clientIp === '::1') {
+    $isLocal = true;
+} else {
+    $isLocal = false;
+}
+
+// Define paths
 $audioDir = __DIR__ . '/audio';
 $logFile = __DIR__ . '/platachat.log';
 
@@ -32,10 +45,79 @@ if (!isset($data['text'])) {
     exit;
 }
 
+/* we also expect following params:
+              lang: language,
+              prompt: prompt,
+              model: mdl,
+              session: session,
+              seq: seq,
+              lat: lat,
+              lon: lon,
+              osinfo: osinfo
+*/
+if (!isset($data['session'])) {
+    logError('Missing session ID', $logFile);
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing session ID']);
+    exit;
+}
+if (!isset($data['seq'])) {
+    logError('Missing sequence number', $logFile);
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing sequence number']);
+    exit;
+}   
+if (!isset($data['lat'])) {
+    logError('Missing latitude', $logFile);
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing latitude']);
+    exit;
+}
+if (!isset($data['lon'])) {
+    logError('Missing longitude', $logFile);
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing longitude']);
+    exit;
+}
+if (!isset($data['osinfo'])) {
+    logError('Missing OS info', $logFile);
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing OS info']);
+    exit;
+}
+if (!isset($data['lang'])) {
+    logError('Missing language', $logFile);
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing language']);
+    exit;
+}
+if (!isset($data['prompt'])) {
+    logError('Missing prompt', $logFile);
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing prompt']);
+    exit;
+}
 
+switch ($data['prompt']) {
+    case 'default':
+        $promptfile = "plataPrompt.txt";
+        break;
+    case 'fest25':
+        $promptfile = "fest25Prompt.txt";
+        break;
+    default:
+        logError('Unsupported prompt', $logFile);
+        http_response_code(400);
+        echo json_encode(['error' => 'Unsupported prompt']);
+        exit;
+}
+
+$systemPrompt = implode(' ', array_map('trim', file($promptfile)));
+
+
+// user input
 $userText = escapeshellarg($data['text']); // Protect input
 
-$systemPrompt = implode(' ', array_map('trim', file(__DIR__ . '/plataPrompt.txt')));
 
 //$modelPrompt = $systemPrompt . PHP_EOL . "Der Nutzer fragt folgendes:" . PHP_EOL . $userText;
 $modelPrompt = "System: " . $systemPrompt . "User:" . $data['text'] . PHP_EOL;
@@ -44,10 +126,8 @@ $modelPrompt = "System: " . $systemPrompt . "User:" . $data['text'] . PHP_EOL;
 $model = isset($data['model']) ? escapeshellarg($data['model']) : 'granite3.3:2b';
 // qwen2.5:3b   deepseek-r1:1.5b  gemma3:1b  phi3:mini llama3.2:latest 
 
-//set env for ollama
-
-$home = '/home/okl'; // Adjust this to a real user directory where `.ollama` exists
-
+//set env for ollama. needs to store some cache data there
+$home = '/home/okl'; 
 $env = array_merge($_ENV, [
     'HOME' => $home,
 ]);
@@ -90,10 +170,31 @@ if ($returnCode !== 0) {
     exit;
 }
 
+
+// store chat data
+
+
 // trim output 
 $output = preg_replace('/<think>.*?<\/think>/is', '', $output);
 $output = trim($output);
 
+// store chat data
+$chatData = [
+    'session' => $data['session'],
+    'seq' => $data['seq'],
+    'user' => $data['text'],
+    'system' => $systemPrompt,
+    'response' => $output,
+    'osinfo' => $data['osinfo'],
+    'model' => $data['model'] ?? null,
+];
+$storeResult = storeChatData($chatData, $isLocal);
+if (strpos($storeResult, 'successful') === false) {
+    logError("Failed to store chat data: $storeResult", $logFile);
+    http_response_code(500);
+    echo json_encode(['error' => 'Failed to store chat data']);
+    exit;
+}   
 
 // check synthesizer 
 $port = 9010;
@@ -112,7 +213,7 @@ curl_close($ch);
 if ($httpCode !== 200) {
     logError("TTS service returned: $httpCode", $logFile);
     // Synthesize the output with espeak-ng
-    $audioFile = $audioDir . '/response.wav';
+    $audioFile = $audioDir . "/" . $data['session'] . "_" . $data['seq'] . '.wav';
     $synth = "espeak-ng";
 
     // Escape output for shell
@@ -132,7 +233,7 @@ if ($httpCode !== 200) {
     }
 } else {
     // If TTS service is running, use it to synthesize the output
-    $audioFile = 'response.wav'; // plain name here 
+    $audioFile =  $data['session'] . "_" . $data['seq'] . '.wav'; // plain name here 
     $synth = "coqui";
     $postFields = [
         'text' => $output,

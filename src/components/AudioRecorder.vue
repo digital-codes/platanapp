@@ -37,8 +37,8 @@
         </div>
       </div>
     </div>
-    
-    <div v-if="audioUrl && !isRecording" class="playback-section">
+    <!-- iphone can record webm but can't play it. disable player -->
+    <div v-if="audioUrl && !isRecording && !isIphone" class="playback-section">
       <div class="playback-info">
         <span class="file-icon">🎵</span>
         <span>{{ $t('recordingready') }}</span>
@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 
 const mediaRecorder = ref<MediaRecorder | null>(null)
 const audioChunks = ref<Blob[]>([])
@@ -59,6 +59,15 @@ const audioFile = ref<string>("")
 const progress = ref<number>(0)
 const countdownRef = ref<number>(10)
 const timerRef = ref<NodeJS.Timeout | null>(null)
+
+const isIphone = ref<boolean>(false)
+
+onMounted(() => {
+  const osInfo = localStorage.getItem("osinfo")
+  if (osInfo && osInfo.toLowerCase().includes("ios")) {
+    isIphone.value = true
+  }
+})
 
 const uploadUrl = import.meta.env.MODE !== 'development'
   ? '/platane/php/audioRx.php'
@@ -94,13 +103,18 @@ async function startRecording() {
         return;
       }
       const base64Audio = String(reader.result).split(',')[1]
+      // get session info
+      const session = localStorage.getItem("session") || null;
+      const seq = localStorage.getItem("seq") || "1";
+      const filename = session ? `${session}_${seq}` : 'recording'; // host appends extension
+
       fetch(uploadUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          filename: 'recording.webm',
+          filename: filename,
           audio: base64Audio
         })
       })
