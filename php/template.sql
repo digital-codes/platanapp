@@ -32,6 +32,9 @@ CREATE TABLE `chats` (
   `response` text NOT NULL,
   `os` varchar(100) DEFAULT NULL,
   `model` varchar(100) DEFAULT NULL,
+  `lat` varchar(100) DEFAULT NULL,
+  `lon` varchar(100) DEFAULT NULL,
+  `lang` varchar(100) DEFAULT NULL,
   `date` datetime NOT NULL DEFAULT current_timestamp(),
   UNIQUE KEY `chats_id_IDX` (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -69,15 +69,13 @@ if (!isset($data['seq'])) {
 }   
 if (!isset($data['lat'])) {
     logError('Missing latitude', $logFile);
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing latitude']);
-    exit;
+    // overwrite geodata
+    $data['lat'] = "-1.0"; // default value
 }
 if (!isset($data['lon'])) {
     logError('Missing longitude', $logFile);
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing longitude']);
-    exit;
+    // overwrite geodata
+    $data['lon'] = "-1.0"; // default value
 }
 if (!isset($data['osinfo'])) {
     logError('Missing OS info', $logFile);
@@ -187,6 +185,9 @@ $chatData = [
     'response' => $output,
     'osinfo' => $data['osinfo'],
     'model' => $data['model'] ?? null,
+    'lat' => $data['lat'] ?? null,
+    'lon' => $data['lon'] ?? null,
+    'lang' => $data['lang'] ?? null,
 ];
 $storeResult = storeChatData($chatData, $isLocal);
 if (strpos($storeResult, 'successful') === false) {
