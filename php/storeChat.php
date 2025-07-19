@@ -1,27 +1,5 @@
 <?php
-function storeChatData(array $data, bool $isLocal = null): string {
-
-    // Choose config file
-    $iniPath = $isLocal ? './chats.ini' : '/var/www/files/platane/chats.ini';
-    if (!file_exists($iniPath)) {
-        return "Configuration file not found: $iniPath";
-    }
-
-    $config = parse_ini_file($iniPath, true)['db'] ?? null;
-    if (!$config) {
-        return "Invalid config format in $iniPath";
-    }
-
-    // Connect to DB
-    try {
-        $dsn = "mysql:host=localhost;dbname={$config['dbname']};charset=utf8mb4";
-        $pdo = new PDO($dsn, $config['dbuser'], $config['dbpwd'], [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
-    } catch (PDOException $e) {
-        return "DB connection failed: " . $e->getMessage();
-    }
-
+function storeChatData(PDO $pdo, array $data): string {
     // Get data
     $session = $data['session'] ?? null;
     $seq = isset($data['seq']) ? (int)$data['seq'] : null;
@@ -68,8 +46,8 @@ function storeChatData(array $data, bool $isLocal = null): string {
 
 function getSessionEntries(PDO $pdo, string $sessionId): array {
     $sql = "
-        SELECT user, system, response, model
-        FROM example_table
+        SELECT user, system, response, model, lang
+        FROM chats
         WHERE session = :session
         ORDER BY seq ASC
     ";

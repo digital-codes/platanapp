@@ -25,6 +25,22 @@ if ($clientIp === '127.0.0.1' || $clientIp === '::1') {
     $isLocal = false;
 }
 
+$connection = createConnection($isLocal);
+if ($connection['status'] !== 'ok') {
+    logError("Database connection failed: " . $connection['message'], $logFile);
+    http_response_code(500);
+    echo json_encode(['error' => 'Database connection failed']);
+    exit;
+}   
+$pdo = $connection['connection'];
+if (!$pdo) {
+    logError("Failed to create PDO connection", $logFile);
+    http_response_code(500);
+    echo json_encode(['error' => 'Database connection failed']);
+    exit;
+}
+
+
 // Define paths
 $audioDir = __DIR__ . '/audio';
 $logFile = __DIR__ . '/platachat.log';
@@ -189,7 +205,8 @@ $chatData = [
     'lon' => $data['lon'] ?? null,
     'lang' => $data['lang'] ?? null,
 ];
-$storeResult = storeChatData($chatData, $isLocal);
+
+$storeResult = storeChatData($pdo, $chatData);
 if (strpos($storeResult, 'successful') === false) {
     logError("Failed to store chat data: $storeResult", $logFile);
     http_response_code(500);
