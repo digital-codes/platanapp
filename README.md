@@ -91,6 +91,25 @@ Check target subdomain: "base" in vite.config.js
 # Extensions
 ## Climate/Wheather data
 
+### Current values, karlsruhe.
+last 10 minutes
+
+Download from TP, https://transparenz.karlsruhe.de/dataset/21a50a64-fbdc-4ba5-94fb-0b1f27fb81b6/resource/78e9816b-0f18-47b8-845b-905f50d9513d/download/lubw.csv
+
+> measured_at	winddir	windspeed	temperature	pressure	irradiation	rain	humidity
+  2025-07-19T10:31:00	79.4827	3.5	27.6	993.05	148867	0	42.05
+  2025-07-19T10:32:00	94.9086	3.65	27.55	993.1	148883	0	42.05
+  2025-07-19T10:33:00	109552	2.95	27.5	993.1	150083	0	42.2
+  2025-07-19T10:34:00	118791	2.36667	27.45	993.1	149383	0	42.2
+  2025-07-19T10:35:00	94.8237	2.63333	27.4	993.15	150	0	42.1
+  2025-07-19T10:36:00	93.5831	3.93333	27.4	993.2	151.85	0	42.15
+  2025-07-19T10:37:00	90.9102	3.18333	27.35	993.2	155817	0	41.95
+  2025-07-19T10:38:00	93.3147	4.26667	27.3	993.2	157667	0	41.65
+  2025-07-19T10:39:00	85.5184	2.6	27.25	993.2	157	0	41.8
+  2025-07-19T10:40:00	100.1	3.53333	27.2	993.2	155567	0	42.05
+
+
+
 ### DWD, Rheinstetten
 rheinstetten 
 Rheinstetten;48.97;8.33;118;Germany, Höhe 116m

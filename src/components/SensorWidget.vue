@@ -30,20 +30,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+
+import { loadKaWeatherData, LoadKaWeatherDataResult } from '../services/LoaderWeather'  // Import the weather data loader
 
 // Mock sensor data - in real implementation, this would come from props or API
 const temperature = ref(22)
 const soilMoisture = ref(45)
 const rainfall = ref(12)
+const irradiation = ref(250)
+const humidity = ref(50)
+
+const iv = ref<ReturnType<typeof setInterval> | null>(null)
+const weatherUrl = "https://dashboard.daten.city/php/corsProxy.php?topic=kaiserplatz"
+
+const getWeatherData = async () => {
+  const kaWeather: LoadKaWeatherDataResult = await loadKaWeatherData(weatherUrl)
+  console.log('Loaded KA weather data:', kaWeather);
+  temperature.value = kaWeather.temperature
+  soilMoisture.value = kaWeather.soilMoisture
+  rainfall.value = kaWeather.rainfall
+  irradiation.value = kaWeather.irradiation
+  humidity.value = kaWeather.humidity
+}
 
 // Simulate data updates
 onMounted(() => {
-  setInterval(() => {
-    temperature.value = 18 + Math.random() * 8
-    soilMoisture.value = 30 + Math.random() * 40
-    rainfall.value = Math.random() * 25
-  }, 5000)
+  getWeatherData()  // Initial data fetch
+  iv.value = setInterval(async () => { getWeatherData() }, 5 * 60 * 1000)
+})
+
+onUnmounted(() => {
+  if (iv.value) {
+    clearInterval(iv.value)
+  }
 })
 </script>
 
