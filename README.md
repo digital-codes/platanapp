@@ -94,6 +94,8 @@ Check target subdomain: "base" in vite.config.js
 get local current conditions, recent conditions (week and month) and long term
 climate conditions and prepare for prompt input.
 
+long term: get files from DWD below and run "averages.py" once and copy "montly_averages.csv" to server
+
 couple of pythons scripts together with crontab:
 
 ```
@@ -102,6 +104,18 @@ couple of pythons scripts together with crontab:
 ```
 run compare.py after each current.py
 
+```
+www-data@vmd98182:~/html/llama/platane/py$ python3 compare.py 
+Running with Python 3.10
+Current month: 7
+                               date  temperature  soilMoisture  rainfall  irradiation  humidity   fake
+0  2025-07-20 05:26:08.240324+00:00         19.3     50.073544         0           90      75.4  False
+Current temperature: 19.30000000000001
+Checks: {'tmean_7d': -1.04999999999999, 'tmin_7d': 5.610000000000012, 'tmax_7d': -7.439999999999987, 'tmean_30d': -2.899999999999988, 'tmin_30d': 4.630000000000011, 'tmax_30d': -9.609999999999989, 'tmean_longTerm': -0.2796491228070046, 'tmin_longTerm': 5.90982456140352, 'tmax_longTerm': -6.161578947368408, 'rmean_7d': -2.0, 'rmean_30d': -1.84, 'rmean_longTerm': -77.37321428571428, 'rmax_longTerm': -20.86428571428572, 'tmean_7dlt': 0.7703508771929855, 'tmin_7dlt': 0.29982456140350777, 'tmax_7dlt': 1.278421052631579, 'rmean_7dlt': -75.37321428571428}
+comparison summary saved to climate_indicator_summary.csv
+```
+
+todo: prepare propmt input from comparison
 
 
 ### Local

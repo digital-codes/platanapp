@@ -47,8 +47,8 @@ df.sort_index(inplace=True)
 latest_date = df.index.max()
 now = pd.Timestamp.now().normalize()
 
-if (pd.Timestamp.now() - latest_date) > pd.Timedelta(days=2):
-    raise ValueError(f"Data is too old: last date is {latest_date.date()}, more than 2 days ago.")
+if (pd.Timestamp.now() - latest_date) > pd.Timedelta(days=3):
+    raise ValueError(f"Data is too old: last date is {latest_date.date()}, more than 3 days ago.")
 
 
 # Use only numeric columns
