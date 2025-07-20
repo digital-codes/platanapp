@@ -11,6 +11,11 @@ else:
     from datetime import timezone
     current_time = datetime.now(timezone.utc)
 
+import os
+climate_prompt_path = "climate_prompt.txt"
+if os.path.exists(climate_prompt_path):
+    os.remove(climate_prompt_path)
+
 import locale
 # Set locale to German for date formatting
 try:
@@ -152,9 +157,9 @@ def main():
         prompt += "Es war eher trocken in den letzten Tagen."
 
     print(prompt)
-    with open("climate_prompt.txt", "w", encoding="utf-8") as f:
+    with open(climate_prompt_path, "w", encoding="utf-8") as f:
         f.write(prompt)
-    print("Prompt saved to climate_prompt.txt")
+    print(f"Prompt saved to {climate_prompt_path}")
 
     # Export to CSV
     summary_df = pd.DataFrame(checks, index=[0])
