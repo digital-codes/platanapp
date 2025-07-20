@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
 import sys 
 from datetime import datetime
 # Use correct UTC reference
@@ -21,113 +19,148 @@ except locale.Error:
     # Fallback for systems where 'de_DE.UTF-8' is not available
     locale.setlocale(locale.LC_TIME, 'deu')
 
-current_month = current_time.month
-print(f"Current month: {current_month}")
+def main():
+    # Load the current weather data
+    current = pd.read_csv("current_weather.csv")
+    if current.empty:
+        print("No current weather data available.")
+        return
 
-# Parameters of interest
-parameters = ['rainfall', 'temperature', 'mintemp', 'maxtemp', 'sunhours']  # adjust as needed
+    # Ensure the 'date' column is in datetime format
+    current['date'] = pd.to_datetime(current['date'])
 
-# Last 7/30 day windows
-window_7d = pd.read_csv("climate_recent_analysis_week.csv")
-window_7d = window_7d[window_7d['type'] == 'mean']
-window_30d = pd.read_csv("climate_recent_analysis_month.csv")
-window_30d = window_30d[window_30d['type'] == 'mean']
-longTerm = pd.read_csv("monthly_averages.csv")
-current = pd.read_csv("current_weather.csv")
-print(current)
+    # Get the current month
+    current_month = current_time.month
+    print(f"Current month: {current_month}")
 
-# Prepare output list
-output = []
+    # Parameters of interest
+    parameters = ['rainfall', 'temperature', 'mintemp', 'maxtemp', 'sunhours']  # adjust as needed
 
-# monthly longterm
-longTerm = longTerm[longTerm['month'] == current_month]
+    # Last 7/30 day windows
+    window_7d = pd.read_csv("climate_recent_analysis_week.csv")
+    window_7d = window_7d[window_7d['type'] == 'mean']
+    window_30d = pd.read_csv("climate_recent_analysis_month.csv")
+    window_30d = window_30d[window_30d['type'] == 'mean']
+    longTerm = pd.read_csv("monthly_averages.csv")
+    current = pd.read_csv("current_weather.csv")
+    print(current)
 
-# temperature 
-currVal = current['temperature'].iloc[0]
-print(f"Current temperature: {currVal}")
+    # Prepare output list
+    output = []
 
-checks = {}
+    # monthly longterm
+    longTerm = longTerm[longTerm['month'] == current_month]
 
-# Format current date in German style, e.g. "Dienstag, 12 März 2013"
-prompt = f"Heute ist {current_time.strftime("%A, %d %B %Y")}."
-print(prompt)
+    # temperature 
+    currVal = current['temperature'].iloc[0]
+    print(f"Current temperature: {currVal}")
 
-# 7 days
-# high temp ref
-refVal = abs(window_7d['maxtemp'].iloc[0] - window_7d['temperature'].iloc[0])/2 + window_7d['temperature'].iloc[0]
-#refVal = window_7d['temperature'].iloc[0]
-checks['thigh_7d'] = currVal > refVal
+    checks = {}
 
-# max temp ref
-refVal = window_7d['maxtemp'].iloc[0]
-checks['tmmax_7d'] = currVal > refVal
+    # Format current date in German style, e.g. "Dienstag, 12 März 2013"
+    prompt = f"Heute ist {current_time.strftime('%A, %d %B %Y')}. Es hat {currVal:.1f} Grad."
+    print(prompt)
 
-# low temp ref
-refVal =  + window_7d['temperature'].iloc[0] - abs(window_7d['temperature'].iloc[0] - window_7d['mintemp'].iloc[0])/2
-# refVal = window_7d['mintemp'].iloc[0]
-checks['tlow_7d'] = currVal < refVal
+    # 7 days
+    # high temp ref
+    refVal = abs(window_7d['maxtemp'].iloc[0] - window_7d['temperature'].iloc[0])/2 + window_7d['temperature'].iloc[0]
+    #refVal = window_7d['temperature'].iloc[0]
+    checks['thigh_7d'] = currVal > refVal
 
-# low temp ref
-refVal = window_7d['mintemp'].iloc[0]
-checks['tmin_7d'] = currVal < refVal
+    # max temp ref
+    refVal = window_7d['maxtemp'].iloc[0]
+    checks['tmmax_7d'] = currVal > refVal
 
-# 30 day checks
-# high temp ref
-refVal = abs(window_30d['maxtemp'].iloc[0] - window_30d['temperature'].iloc[0])/2 + window_30d['temperature'].iloc[0]
-#refVal = window_7d['temperature'].iloc[0]
-checks['thigh_30d'] = currVal > refVal
+    # low temp ref
+    refVal =  + window_7d['temperature'].iloc[0] - abs(window_7d['temperature'].iloc[0] - window_7d['mintemp'].iloc[0])/2
+    # refVal = window_7d['mintemp'].iloc[0]
+    checks['tlow_7d'] = currVal < refVal
 
-# max temp ref
-refVal = window_30d['maxtemp'].iloc[0]
-checks['tmmax_30d'] = currVal > refVal
+    # low temp ref
+    refVal = window_7d['mintemp'].iloc[0]
+    checks['tmin_7d'] = currVal < refVal
 
-# low temp ref
-refVal =  + window_30d['temperature'].iloc[0] - abs(window_30d['temperature'].iloc[0] - window_30d['mintemp'].iloc[0])/2
-# refVal = window_7d['mintemp'].iloc[0]
-checks['tlow_30d'] = currVal < refVal
+    # 30 day checks
+    # high temp ref
+    refVal = abs(window_30d['maxtemp'].iloc[0] - window_30d['temperature'].iloc[0])/2 + window_30d['temperature'].iloc[0]
+    #refVal = window_7d['temperature'].iloc[0]
+    checks['thigh_30d'] = currVal > refVal
 
-# low temp ref
-refVal = window_30d['mintemp'].iloc[0]
-checks['tmin_30d'] = currVal < refVal
+    # max temp ref
+    refVal = window_30d['maxtemp'].iloc[0]
+    checks['tmmax_30d'] = currVal > refVal
 
-# long term checks
-refVal = longTerm['mintemp'].iloc[0]
-checks['tmin_longTerm'] = currVal < refVal
-refVal = longTerm['maxtemp'].iloc[0]
-checks['tmax_longTerm'] = currVal > refVal
+    # low temp ref
+    refVal =  + window_30d['temperature'].iloc[0] - abs(window_30d['temperature'].iloc[0] - window_30d['mintemp'].iloc[0])/2
+    # refVal = window_7d['mintemp'].iloc[0]
+    checks['tlow_30d'] = currVal < refVal
 
+    # low temp ref
+    refVal = window_30d['mintemp'].iloc[0]
+    checks['tmin_30d'] = currVal < refVal
 
-# rainfall
-currVal = current['rainfall'].iloc[0]
-refVal = window_7d['rainfall'].iloc[0]
-checks['rlow_7d'] = currVal < refVal * .5
-checks['rhigh_7d'] = currVal > refVal * 2
-
-refVal = window_30d['rainfall'].iloc[0]
-checks['rlow_30d'] = currVal < refVal * .5
-checks['rhigh_30d'] = currVal > refVal * 2
-
-refVal = longTerm['rainfall'].iloc[0]
-checks['rlow_longTerm'] = currVal < refVal * .5
-checks['rhigh_longTerm'] = currVal > refVal * 2
-refVal = longTerm['maxrain'].iloc[0]
-checks['rmax_longTerm'] = currVal > refVal
-
-# also compare 7 days to longterm
-# temperature 
-checks['tmean_7dlt'] = window_7d['temperature'].iloc[0] - longTerm['temperature'].iloc[0]
-checks['tmin_7dlt'] = window_7d['mintemp'].iloc[0] - longTerm['mintemp'].iloc[0]
-checks['tmax_7dlt'] = window_7d['maxtemp'].iloc[0] - longTerm['maxtemp'].iloc[0]
-
-# rainfall
-checks['rmean_7dlt'] = window_7d['rainfall'].iloc[0] - longTerm['rainfall'].iloc[0]
+    # long term checks
+    refVal = longTerm['mintemp'].iloc[0]
+    checks['tmin_longTerm'] = currVal < refVal
+    refVal = longTerm['maxtemp'].iloc[0]
+    checks['tmax_longTerm'] = currVal > refVal
 
 
-print(f"Checks: {checks}")
+    # rainfall
+    currVal = current['rainfall'].iloc[0]
+    refVal = window_7d['rainfall'].iloc[0]
+    checks['rlow_7d'] = currVal < refVal * .5
+    checks['rhigh_7d'] = currVal > refVal * 2
+
+    refVal = window_30d['rainfall'].iloc[0]
+    checks['rlow_30d'] = currVal < refVal * .5
+    checks['rhigh_30d'] = currVal > refVal * 2
+
+    refVal = longTerm['rainfall'].iloc[0]
+    checks['rlow_longTerm'] = currVal < refVal * .5
+    checks['rhigh_longTerm'] = currVal > refVal * 2
+    refVal = longTerm['maxrain'].iloc[0]
+    checks['rmax_longTerm'] = currVal > refVal
+
+    # also compare 7 days to longterm
+    # temperature 
+    checks['tmean_7dlt'] = window_7d['temperature'].iloc[0] > longTerm['temperature'].iloc[0]
+    checks['tmin_7dlt'] = window_7d['mintemp'].iloc[0] < longTerm['mintemp'].iloc[0]
+    checks['tmax_7dlt'] = window_7d['maxtemp'].iloc[0] > longTerm['maxtemp'].iloc[0]
+
+    # rainfall
+    checks['rhigh_7dlt'] = window_7d['rainfall'].iloc[0] > longTerm['rainfall'].iloc[0] * 2
+    checks['rlow_7dlt'] = window_7d['rainfall'].iloc[0] < longTerm['rainfall'].iloc[0] * 0.5    
 
 
-# Export to CSV
-summary_df = pd.DataFrame(checks, index=[0])
-summary_df.to_csv("climate_indicator_summary.csv", index=False)
+    print(f"Checks: {checks}")
 
-print("comparison summary saved to climate_indicator_summary.csv")
+    # update prompt on some conditions
+    if checks['tmin_longTerm']:
+        prompt += "Es ist kälter als langjährigen Durchschnitt."
+    elif checks['tmax_longTerm']:
+        prompt += "Es ist wärmer als langjährigen Durchschnitt."
+
+    if checks['thigh_7d']:
+        prompt += "Es ist wärmer geworden."
+    elif checks['tlow_7d']:
+        prompt += "Es ist kälter geworden."
+
+    if checks['rhigh_7dlt']:
+        prompt += "Es war eher feucht in den letzten Tagen."
+    elif checks['rlow_7dlt']:
+        prompt += "Es war eher trocken in den letzten Tagen."
+
+    print(prompt)
+    with open("climate_prompt.txt", "w", encoding="utf-8") as f:
+        f.write(prompt)
+    print("Prompt saved to climate_prompt.txt")
+
+    # Export to CSV
+    summary_df = pd.DataFrame(checks, index=[0])
+    summary_df.to_csv("climate_indicator_summary.csv", index=False)
+
+    print("comparison summary saved to climate_indicator_summary.csv")
+
+if __name__ == "__main__":
+    main()

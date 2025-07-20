@@ -82,3 +82,7 @@ if __name__ == "__main__":
     # Save the DataFrame to a CSV file
     df.to_csv("current_weather.csv", index=False)
 
+    # call the compare.py script
+    import compare  
+    compare.main()  # Assuming you have a main function in compare.py
+

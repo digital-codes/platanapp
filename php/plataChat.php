@@ -126,7 +126,17 @@ switch ($data['prompt']) {
         exit;
 }
 
+$climatePromptPath = __DIR__ . '/../py/climate_prompt.txt';
+if (file_exists($climatePromptPath)) {
+    $climatePrompt = file_get_contents($climatePromptPath);
+} else {
+    $climatePrompt = null;
+}
+
 $systemPrompt = implode(' ', array_map('trim', file($promptfile)));
+if ($climatePrompt !== null) {
+    $systemPrompt .= ' ' . trim($climatePrompt);
+}
 
 
 // user input
@@ -292,6 +302,12 @@ if ($httpCode !== 200) {
 
 $audioData = file_get_contents($audioFile);
 $audioBase64 = base64_encode($audioData);
+
+foreach (glob($audioDir . "/*" . $data['session'] . "*") as $oldFile) {
+    if (is_file($oldFile)) {
+        @unlink($oldFile);
+    }
+}
 echo json_encode(value: ['status' => 'ok', 'text' => $output, "audio" => $audioBase64, "synth" => $synth]);
 
 
