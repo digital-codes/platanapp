@@ -63,7 +63,7 @@ function getSessionEntries(PDO $pdo, string $sessionId): array {
 
 function createConnection(bool $isLocal = null): array {
     // Choose config file
-    $iniPath = $isLocal ? './chats.ini' : '/var/www/files/platane/chats.ini';
+    $iniPath = $isLocal ? './config.ini' : '/var/www/files/platane/config.ini';
     if (!file_exists($iniPath)) {
         return ["status"=>"error", "connection"=>null, "message"=>"Configuration file not found: $iniPath"];
     }

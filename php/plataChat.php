@@ -6,6 +6,18 @@ date_default_timezone_set('UTC');
 require_once("storeChat.php");
 
 
+// Define paths
+$audioDir = __DIR__ . '/audio';
+$logFile = __DIR__ . '/platachat.log';
+
+// Helper to log errors
+function logError($message, $logFile)
+{
+    $entry = sprintf("[%s] ERROR: %s\n", date('Y-m-d H:i:s'), $message);
+    file_put_contents($logFile, $entry, FILE_APPEND);
+}
+
+
 // don't set     
 // header('Access-Control-Allow-Origin: *');
 // here. is already done in website config
@@ -40,17 +52,6 @@ if (!$pdo) {
     exit;
 }
 
-
-// Define paths
-$audioDir = __DIR__ . '/audio';
-$logFile = __DIR__ . '/platachat.log';
-
-// Helper to log errors
-function logError($message, $logFile)
-{
-    $entry = sprintf("[%s] ERROR: %s\n", date('Y-m-d H:i:s'), $message);
-    file_put_contents($logFile, $entry, FILE_APPEND);
-}
 
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -112,39 +113,67 @@ if (!isset($data['prompt'])) {
     exit;
 }
 
-switch ($data['prompt']) {
-    case 'default':
-        $promptfile = "plataPrompt.txt";
-        break;
-    case 'fest25':
-        $promptfile = "fest25Prompt.txt";
-        break;
-    default:
-        logError('Unsupported prompt', $logFile);
-        http_response_code(400);
-        echo json_encode(['error' => 'Unsupported prompt']);
-        exit;
-}
+if ($data["seq"] == 1) {
+    // initialize the session
+    switch ($data['prompt']) {
+        case 'default':
+            $promptfile = "plataPrompt.txt";
+            break;
+        case 'fest25':
+            $promptfile = "fest25Prompt.txt";
+            break;
+        default:
+            logError('Unsupported prompt', $logFile);
+            http_response_code(400);
+            echo json_encode(['error' => 'Unsupported prompt']);
+            exit;
+    }
 
-$climatePromptPath = __DIR__ . '/../py/climate_prompt.txt';
-if (file_exists($climatePromptPath)) {
-    $climatePrompt = file_get_contents($climatePromptPath);
+    $climatePromptPath = __DIR__ . '/../py/climate_prompt.txt';
+    if (file_exists($climatePromptPath)) {
+        $climatePrompt = file_get_contents($climatePromptPath);
+    } else {
+        $climatePrompt = null;
+    }
+
+    $systemPrompt = implode(' ', array_map('trim', file($promptfile)));
+    if ($climatePrompt !== null) {
+        $systemPrompt .= ' ' . trim($climatePrompt);
+    }
+    // user input
+    $userText = escapeshellarg($data['text']); // Protect input
+    $modelPrompt = "System: " . $systemPrompt . "Frage:" . $userText . PHP_EOL;
 } else {
-    $climatePrompt = null;
+    // read session history
+    $sessionEntries = getSessionEntries($pdo, $data['session']);
+    if (empty($sessionEntries)) {
+        logError('Session not found or empty', $logFile);
+        http_response_code(404);
+        echo json_encode(['error' => 'Session not found or empty']);
+        exit;
+    }
+    $systemPrompt = $sessionEntries[0]['system'] ?? null;
+    if ($systemPrompt === null) {
+        logError('No system prompt found in session', $logFile);
+        http_response_code(404);
+        echo json_encode(['error' => 'No system prompt found in session']);
+        exit;
+    }
+    $modelPrompt = "System: " . $systemPrompt;
+    foreach ($sessionEntries as $entry) {
+        if (isset($entry['user'])) {
+            $modelPrompt .= "Frage: " . trim($entry['user']);
+        }
+        if (isset($entry['response'])) {
+            $modelPrompt .= "Antwort: " . trim($entry['response']);
+        }
+    }
+    // final user input
+    $userText = escapeshellarg($data['text']); // Protect input
+    $modelPrompt .= "Frage: " . $userText . PHP_EOL;
 }
-
-$systemPrompt = implode(' ', array_map('trim', file($promptfile)));
-if ($climatePrompt !== null) {
-    $systemPrompt .= ' ' . trim($climatePrompt);
-}
-
-
-// user input
-$userText = escapeshellarg($data['text']); // Protect input
-
-
-//$modelPrompt = $systemPrompt . PHP_EOL . "Der Nutzer fragt folgendes:" . PHP_EOL . $userText;
-$modelPrompt = "System: " . $systemPrompt . "User:" . $data['text'] . PHP_EOL;
+// check
+//logError("Model prompt: $modelPrompt", $logFile);
 
 // Build the `ollama run` command
 $model = isset($data['model']) ? escapeshellarg($data['model']) : 'granite3.3:2b';

@@ -137,9 +137,9 @@ def main():
 
     # update prompt on some conditions
     if checks['tmin_longTerm']:
-        prompt += "Es ist kälter als langjährigen Durchschnitt."
+        prompt += "Es ist kälter als im langjährigen Durchschnitt."
     elif checks['tmax_longTerm']:
-        prompt += "Es ist wärmer als langjährigen Durchschnitt."
+        prompt += "Es ist wärmer als im langjährigen Durchschnitt."
 
     if checks['thigh_7d']:
         prompt += "Es ist wärmer geworden."
