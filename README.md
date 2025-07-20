@@ -91,6 +91,24 @@ Check target subdomain: "base" in vite.config.js
 # Extensions
 ## Climate/Wheather data
 
+get local current conditions, recent conditions (week and month) and long term
+climate conditions and prepare for prompt input.
+
+couple of pythons scripts together with crontab:
+
+```
+*/10 * * * * cd /var/www/html/llama/platane/py && /usr/bin/python3 current.py >> cron.log 2>&1
+0 3 * * * cd /var/www/html/llama/platane/py && /usr/bin/python3 recent.py >> recent.log 2>&1
+```
+run compare.py after each current.py
+
+
+
+### Local
+local weather at Kaiserplatz from transparenzportal
+
+later via sensors (option)
+
 ### DWD, Rheinstetten
 rheinstetten 
 Rheinstetten;48.97;8.33;118;Germany, Höhe 116m
