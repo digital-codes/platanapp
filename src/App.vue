@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { watch, nextTick } from 'vue'
+import { watch, nextTick, onMounted } from 'vue'
 
 import WelcomeHeader from './components/WelcomeHeader.vue'
 import SensorWidget from './components/SensorWidget.vue'
@@ -11,7 +11,6 @@ import ModelSelector from './components/ModelSelector.vue'
 import PromptSelector from './components/PromptSelector.vue'
 import FooterInfo from './components/FooterInfo.vue'
 import FollowCheck from './components/FollowCheck.vue'
-import { onMounted } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 const { t, locale } = useI18n()
@@ -31,6 +30,7 @@ const chatHistory = ref<Array<{ type: 'user' | 'assistant', message: string, aud
 const chatSequence = ref<number>(1)
 const prompt = ref<string>("default") // Default prompt
 const processing = ref<boolean>(false)
+const chatMessagesRef = ref<HTMLElement | null>(null)
 
 const convertUrl = import.meta.env.MODE !== 'development'
   ? '/platane/php/convert.php'
@@ -231,6 +231,14 @@ watch(prompt, (newPrompt) => {
   initSession();
 })
 
+// Auto-scroll to bottom when new messages are added
+watch(chatHistory, async () => {
+  await nextTick()
+  if (chatMessagesRef.value) {
+    chatMessagesRef.value.scrollTop = chatMessagesRef.value.scrollHeight
+  }
+}, { deep: true })
+
 onMounted(async () => {
   console.log("Locale:", locale.value)
   try {
@@ -282,7 +290,7 @@ onMounted(async () => {
           <p>{{ $t('intro') }}</p>
         </div>
 
-        <div class="chat-messages">
+        <div ref="chatMessagesRef" class="chat-messages">
           <ChatBubble v-for="(message, index) in chatHistory" :key="index" :type="message.type"
             :message="message.message" :audioUrl="message.audioUrl" @play-audio="playAudio" />
         </div>
