@@ -63,7 +63,7 @@ def main():
     checks = {}
 
     # Format current date in German style, e.g. "Dienstag, 12 März 2013"
-    prompt = f"Heute ist {current_time.strftime('%A, %d %B %Y')}. Es hat {currVal:.1f} Grad."
+    prompt = f"Heute ist {current_time.strftime('%A, %d %B %Y')}. Die Temperatur liegt bei {currVal:.1f} Grad."
     print(prompt)
 
     # 7 days
