@@ -2,8 +2,6 @@
 
 function remoteQuery($key, $model, $url, $prompt, $context, $query): array
 {
-    echo "Querying LLM with model: $model\n";
-
     // Build the messages array
     $messages = [
         ["role" => "system", "content" => $prompt]
@@ -46,13 +44,11 @@ function remoteQuery($key, $model, $url, $prompt, $context, $query): array
             'status' => 'ok',
             'reply' => $reply
         ];
-        echo "Assistant: " . $reply;
     } else {
         $result = [
             'status' => 'error',
             'reply' => "Error ($httpCode): $response"
         ];
-        echo "Error ($httpCode): $response";
     }
     return $result;
 }

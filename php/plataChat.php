@@ -114,8 +114,8 @@ if (!isset($data['prompt'])) {
     echo json_encode(['error' => 'Missing prompt']);
     exit;
 }
-if (isset($data['remote'])) {
-    // try to use remote llm
+if (isset($data['model']) && $data['model'] === 'remote' ) {
+    // set for remote llm
     $useRemote = true;
 } else {
     $useRemote = false;

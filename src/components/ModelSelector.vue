@@ -10,6 +10,7 @@
       <option value="granite3.3:2b">Granite 3 ({{$t('fast')}})</option>
       <option value="gemma3:4b">Gemma 3 ({{$t('balanced')}})</option>
       <option value="qwen3:4b">Qwen 3 ({{$t('advanced')}})</option>
+      <option value="remote">Remote</option>
     </select>
   </div>
 </template>
