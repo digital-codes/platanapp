@@ -20,30 +20,11 @@ function logError($message, $logFile)
     file_put_contents($logFile, $entry, FILE_APPEND);
 }
 
-// clean up files first
-$now = time();
-$deleted = [];
-$files = array_merge(
-    glob($audioDir . '/*.webm'),
-    glob($audioDir . '/*.wav'),
-    glob($audioDir . '/*.ogg'),
-    glob($audioDir . '/*.txt')
-);
-
-foreach ($files as $file) {
-    if (is_file($file)) {
-        $fileMTime = filemtime($file);
-
-        // Older than 10 minutes?
-        if ($now - $fileMTime > 600) {
-            if (unlink($file)) {
-                $deleted[] = basename($file);
-            }
-        }
-    }
-}
-
-logError('Deleted files: ' . implode(', ', $deleted), $logFile);
+// locking mechanism
+require_once __DIR__ . '/locking.php';
+$lockname = 'audioRx';
+// blocking!    
+acquireLock($lockname);
 
 // check tts service
 $port = 9010;
@@ -83,6 +64,8 @@ BASH;
         exit;
     }
 }
+
+releaseLock($lockname);
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

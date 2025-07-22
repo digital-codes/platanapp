@@ -3,7 +3,7 @@
     <div class="recorder-container">
       <button 
         @click="startRecording" 
-        :disabled="isRecording"
+        :disabled="isRecording || disableRecordButton"
         :class="['record-button', { 'recording': isRecording }]"
       >
         <div class="button-content">
@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted } from 'vue'
+import { watch } from 'vue'
 
 const mediaRecorder = ref<MediaRecorder | null>(null)
 const audioChunks = ref<Blob[]>([])
@@ -59,7 +60,7 @@ const audioFile = ref<string>("")
 const progress = ref<number>(0)
 const countdownRef = ref<number>(10)
 const timerRef = ref<NodeJS.Timeout | null>(null)
-
+const disableRecordButton = ref<boolean>(false)
 const isIphone = ref<boolean>(false)
 
 onMounted(() => {
@@ -76,7 +77,20 @@ const uploadUrl = import.meta.env.MODE !== 'development'
 const emit = defineEmits<{
   (e: 'upload-result', result: { success: boolean, data?: any, error?: any }): void
   (e: 'reset'): void
+  (e: 'completed'): void
 }>()
+
+const props = defineProps<{
+  disableRecordButton?: boolean
+}>()
+
+if (props.disableRecordButton !== undefined) {
+  disableRecordButton.value = props.disableRecordButton
+}
+
+watch(() => props.disableRecordButton, (newVal) => {
+  disableRecordButton.value = newVal
+})
 
 async function startRecording() {
   if (isRecording.value) return
@@ -151,6 +165,7 @@ function stopRecording() {
   if (mediaRecorder.value && isRecording.value) {
     mediaRecorder.value.stop()
     isRecording.value = false
+    emit('completed')
   }
 }
 </script>

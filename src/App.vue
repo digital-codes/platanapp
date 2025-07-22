@@ -303,7 +303,10 @@ onMounted(async () => {
 
         <FollowCheck :visible="(chatHistory.length > 0) && !processing" :message="$t('followcheck')" @start-over="initSession"/>
 
-      <AudioRecorder @upload-result="handleUploadResult" @reset="resetAudio" />
+      <AudioRecorder @upload-result="handleUploadResult" 
+      @reset="resetAudio" 
+      @completed="processing=true"
+      :disable-record-button="processing"/>
     </div>
 
     <FooterInfo />

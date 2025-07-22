@@ -210,6 +210,14 @@ if (!$configLlm) {
     exit;
 }
 
+
+// locking mechanism
+require_once __DIR__ . '/locking.php';
+$lockname = 'llm';
+// blocking!    
+acquireLock($lockname);
+
+
 if (!$useRemote) {
 
     // check
@@ -287,6 +295,7 @@ if (!$useRemote) {
 }
 // store chat data
 
+releaseLock($lockname);
 
 // trim output 
 $output = preg_replace('/<think>.*?<\/think>/is', '', $output);
@@ -314,6 +323,12 @@ if (strpos($storeResult, 'successful') === false) {
     echo json_encode(['error' => 'Failed to store chat data']);
     exit;
 }
+
+
+// locking mechanism
+$lockname = 'audioSynth';
+// blocking!    
+acquireLock($lockname);
 
 // check synthesizer 
 $port = 9010;
@@ -395,6 +410,8 @@ if ($httpCode !== 200) {
     }
 
 }
+
+releaseLock($lockname);
 
 $audioData = file_get_contents($audioFile);
 $audioBase64 = base64_encode($audioData);
