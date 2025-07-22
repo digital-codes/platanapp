@@ -292,6 +292,7 @@ if (!$useRemote) {
 $output = preg_replace('/<think>.*?<\/think>/is', '', $output);
 $output = trim($output);
 
+
 // store chat data
 $chatData = [
     'session' => $data['session'],
@@ -327,6 +328,11 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
+
+$output = preg_replace_callback('/\bki\b|\bKI\b/', function ($matches) {
+    // Replace isolated 'ki' or 'KI' with 'K I'
+    return strtoupper($matches[0][0]) === 'K' ? 'K I' : 'k i';
+}, $output);
 
 if ($httpCode !== 200) {
     logError("TTS service returned: $httpCode", $logFile);
