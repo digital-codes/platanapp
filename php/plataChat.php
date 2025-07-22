@@ -4,6 +4,8 @@ date_default_timezone_set('UTC');
 
 // database handler
 require_once("storeChat.php");
+// remote handler
+require_once("remoteLlm.php");
 
 
 // Define paths
@@ -41,14 +43,14 @@ $connection = createConnection($isLocal);
 if ($connection['status'] !== 'ok') {
     logError("Database connection failed: " . $connection['message'], $logFile);
     http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
+    echo json_encode(['error' => 'Database connection failed (1)']);
     exit;
-}   
+}
 $pdo = $connection['connection'];
 if (!$pdo) {
     logError("Failed to create PDO connection", $logFile);
     http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
+    echo json_encode(['error' => 'Database connection failed (2)']);
     exit;
 }
 
@@ -83,7 +85,7 @@ if (!isset($data['seq'])) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing sequence number']);
     exit;
-}   
+}
 if (!isset($data['lat'])) {
     logError('Missing latitude', $logFile);
     // overwrite geodata
@@ -112,6 +114,13 @@ if (!isset($data['prompt'])) {
     echo json_encode(['error' => 'Missing prompt']);
     exit;
 }
+if (isset($data['remote'])) {
+    // try to use remote llm
+    $useRemote = true;
+} else {
+    $useRemote = false;
+}
+
 
 if ($data["seq"] == 1) {
     // initialize the session
@@ -140,8 +149,12 @@ if ($data["seq"] == 1) {
     if ($climatePrompt !== null) {
         $systemPrompt .= ' ' . trim($climatePrompt);
     }
+
+    $remotePrompt = $systemPrompt;
     // user input
     $userText = escapeshellarg($data['text']); // Protect input
+    $remoteQuery = $userText;
+    $remoteContext = [];
     $modelPrompt = "System: " . $systemPrompt . "Frage:" . $userText . PHP_EOL;
 } else {
     // read session history
@@ -159,71 +172,119 @@ if ($data["seq"] == 1) {
         echo json_encode(['error' => 'No system prompt found in session']);
         exit;
     }
+    $remotePrompt = $systemPrompt;
+    $remoteContext = [];
     $modelPrompt = "System: " . $systemPrompt;
     foreach ($sessionEntries as $entry) {
+        $context = [];
         if (isset($entry['user'])) {
             $modelPrompt .= "Frage: " . trim($entry['user']);
+            $context['user'] = $entry['user'];
         }
         if (isset($entry['response'])) {
             $modelPrompt .= "Antwort: " . trim($entry['response']);
+            $context['assistant'] = $entry['response'];
         }
+        $remoteContext[] = $context;
     }
     // final user input
     $userText = escapeshellarg($data['text']); // Protect input
+    $remoteQuery = $userText;
     $modelPrompt .= "Frage: " . $userText . PHP_EOL;
 }
-// check
-//logError("Model prompt: $modelPrompt", $logFile);
 
-// Build the `ollama run` command
-$model = isset($data['model']) ? escapeshellarg($data['model']) : 'granite3.3:2b';
-// qwen2.5:3b   deepseek-r1:1.5b  gemma3:1b  phi3:mini llama3.2:latest 
-
-//set env for ollama. needs to store some cache data there
-$home = '/home/okl'; 
-$env = array_merge($_ENV, [
-    'HOME' => $home,
-]);
-
-
-$descriptorSpec = [
-    0 => ['pipe', 'r'],
-    1 => ['pipe', 'w'],
-    2 => ['pipe', 'w'],
-];
-
-$process = proc_open("ollama run $model", $descriptorSpec, $pipes, null, $env);
-
-if (!is_resource($process)) {
+// parse init
+$iniPath = $isLocal ? './config.ini' : '/var/www/files/platane/config.ini';
+if (!file_exists($iniPath)) {
+    logError("Missing ini file: $iniPath", $logFile);
     http_response_code(500);
-    echo json_encode(['error' => 'Failed to start Ollama']);
+    echo json_encode(['error' => 'Configuration file not found']);
     exit;
 }
 
-fwrite($pipes[0], $modelPrompt);
-fclose($pipes[0]);
-
-$output = stream_get_contents($pipes[1]);
-fclose($pipes[1]);
-
-$error = stream_get_contents($pipes[2]);
-fclose($pipes[2]);
-
-$returnCode = proc_close($process);
-
-if ($returnCode !== 0) {
+$configLlm = parse_ini_file($iniPath, true)['llm'] ?? null;
+if (!$configLlm) {
+    logError("Invalid config format in $iniPath", $logFile);
     http_response_code(500);
-    logError("Ollama failed on: " . $modelPrompt, $logFile);
+    echo json_encode(['error' => 'Invalid config format']);
+    exit;
+}
 
-    echo json_encode([
-        'error' => 'Ollama execution failed',
-        'exitCode' => $returnCode,
-        'stderr' => $error
+if (!$useRemote) {
+
+    // check
+    logError("Using ollama " . $configLlm['url'], $logFile);
+
+    // Build the `ollama run` command
+    $model = isset($data['model']) ? escapeshellarg($data['model']) : 'granite3.3:2b';
+    // qwen2.5:3b   deepseek-r1:1.5b  gemma3:1b  phi3:mini llama3.2:latest 
+
+    //set env for ollama. needs to store some cache data there
+    $home = '/home/okl';
+    $env = array_merge($_ENV, [
+        'HOME' => $home,
     ]);
-    exit;
+
+
+    $descriptorSpec = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ];
+
+    $process = proc_open("ollama run $model", $descriptorSpec, $pipes, null, $env);
+
+    if (!is_resource($process)) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to start Ollama']);
+        exit;
+    }
+
+    fwrite($pipes[0], $modelPrompt);
+    fclose($pipes[0]);
+
+    $output = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+
+    $error = stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+
+    $returnCode = proc_close($process);
+
+    if ($returnCode !== 0) {
+        http_response_code(500);
+        logError("Ollama failed on: " . $modelPrompt, $logFile);
+
+        echo json_encode([
+            'error' => 'Ollama execution failed',
+            'exitCode' => $returnCode,
+            'stderr' => $error
+        ]);
+        exit;
+    }
+
+} else {
+    logError("Using remote LLM API", $logFile);
+    // Call the remote LLM API
+    $apiKey = $configLlm['api_key'];
+    $model = $configLlm['model'];
+    $url = $configLlm['url'];
+
+    // Call the function
+    $response = remoteQuery($apiKey, $model, $url, $remotePrompt, $remoteContext, $remoteQuery);
+    if ($response['status'] === 'error') {
+        http_response_code(500);
+        logError("remote llm failed", $logFile);
+        echo json_encode([
+            'error' => 'LLM execution failed',
+        ]);
+        exit;
+    } else {
+        // Process the response as needed
+        $output = $response['reply'];
+        $output = preg_replace('/^Assistant:\s*/i', '', $output);
+    }
 }
-
-
 // store chat data
 
 
@@ -251,7 +312,7 @@ if (strpos($storeResult, 'successful') === false) {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to store chat data']);
     exit;
-}   
+}
 
 // check synthesizer 
 $port = 9010;
@@ -290,7 +351,7 @@ if ($httpCode !== 200) {
     }
 } else {
     // If TTS service is running, use it to synthesize the output
-    $audioFile =  $data['session'] . "_" . $data['seq'] . '.wav'; // plain name here 
+    $audioFile = $data['session'] . "_" . $data['seq'] . '.wav'; // plain name here 
     $synth = "coqui";
     $postFields = [
         'text' => $output,
@@ -302,7 +363,7 @@ if ($httpCode !== 200) {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));    
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
 
     // Execute POST request
     $ttsResponse = curl_exec($ch);
