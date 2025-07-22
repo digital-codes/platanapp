@@ -64,6 +64,7 @@ const disableRecordButton = ref<boolean>(false)
 const isIphone = ref<boolean>(false)
 
 onMounted(() => {
+  disableRecordButton.value = false
   const osInfo = localStorage.getItem("osinfo")
   if (osInfo && osInfo.toLowerCase().includes("ios")) {
     isIphone.value = true
@@ -88,15 +89,18 @@ if (props.disableRecordButton !== undefined) {
   disableRecordButton.value = props.disableRecordButton
 }
 
-watch(() => props.disableRecordButton, (newVal) => {
+watch(() => props.disableRecordButton, async (newVal) => {
+  await nextTick()
+  console.log('disableRecordButton changed:', newVal)
   disableRecordButton.value = newVal
 })
 
 async function startRecording() {
-  if (isRecording.value) return
   emit('reset')
   await nextTick()
+  // alert('Start recording ...')
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+  // alert('Recording started. Please speak now.')
   mediaRecorder.value = new MediaRecorder(stream)
   audioChunks.value = []
   mediaRecorder.value.ondataavailable = (e) => {
@@ -164,9 +168,9 @@ async function startRecording() {
 
 async function stopRecording() {
   if (mediaRecorder.value && isRecording.value) {
+    await nextTick()
     mediaRecorder.value.stop()
     isRecording.value = false
-    await nextTick()
     emit('completed')
     await nextTick()
   }
