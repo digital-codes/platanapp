@@ -187,6 +187,7 @@ const resetAudio = () => {
   transcript.value = ""
   modelResponse.value = ""
   audioUrl.value = null
+  processing.value = false
   console.log('Audio reset')
 }
 

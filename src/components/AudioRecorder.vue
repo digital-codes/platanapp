@@ -146,6 +146,7 @@ async function startRecording() {
   }
   mediaRecorder.value.start()
   isRecording.value = true
+  await nextTick()
   audioFile.value = ''
   let countdown = 10
   const timer = setInterval(() => {
@@ -161,11 +162,13 @@ async function startRecording() {
   timerRef.value = timer
 }
 
-function stopRecording() {
+async function stopRecording() {
   if (mediaRecorder.value && isRecording.value) {
     mediaRecorder.value.stop()
     isRecording.value = false
+    await nextTick()
     emit('completed')
+    await nextTick()
   }
 }
 </script>
