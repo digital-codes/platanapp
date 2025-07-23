@@ -156,6 +156,7 @@ async function startRecording() {
   const timer = setInterval(() => {
     countdown--
     progress.value = ((10 - countdown) / 10) * 100
+    countdownRef.value = countdown
     if (countdown <= 0) {
       clearInterval(timer)
       stopRecording()
