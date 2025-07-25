@@ -344,10 +344,14 @@ $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
-$output = preg_replace_callback('/\bki\b|\bKI\b/', function ($matches) {
+$audioOutput = preg_replace_callback('/\bki\b|\bKI\b/', function ($matches) {
     // Replace isolated 'ki' or 'KI' with 'K I'
     return strtoupper($matches[0][0]) === 'K' ? 'K I' : 'k i';
 }, $output);
+
+$audioOutput = preg_replace('/[\x{1F600}-\x{1F64F}|\x{1F300}-\x{1F5FF}|\x{1F680}-\x{1F6FF}|\x{2600}-\x{26FF}|\x{2700}-\x{27BF}|\x{1F900}-\x{1F9FF}|\x{1FA70}-\x{1FAFF}|\x{200D}|\x{23CF}|\x{23E9}-\x{23F3}|\x{25FD}-\x{25FE}|\x{2614}-\x{2615}|\x{2648}-\x{2653}|\x{267F}|\x{2693}|\x{26A1}|\x{26AA}-\x{26AB}|\x{26BD}-\x{26BE}|\x{26C4}-\x{26C5}|\x{26CE}|\x{26D4}|\x{26EA}|\x{26F2}-\x{26F3}|\x{26F5}|\x{26FA}|\x{26FD}|\x{2705}|\x{270A}-\x{270B}|\x{2728}|\x{274C}|\x{274E}|\x{2753}-\x{2755}|\x{2757}|\x{2795}-\x{2797}|\x{27B0}|\x{27BF}|\x{2B1B}-\x{2B1C}|\x{2B50}|\x{2B55}|\x{2934}-\x{2935}|\x{2B06}|\x{2B07}|\x{2B1B}|\x{2B1C}|\x{2B50}|\x{2B55}|\x{3030}|\x{303D}|\x{3297}|\x{3299}]/u', '', $audioOutput);
+// Remove other non-printable or non-ASCII characters
+$audioOutput = preg_replace('/[^\P{C}\x20-\x7E]/u', '', $audioOutput);
 
 if ($httpCode !== 200) {
     logError("TTS service returned: $httpCode", $logFile);
@@ -356,7 +360,7 @@ if ($httpCode !== 200) {
     $synth = "espeak-ng";
 
     // Escape output for shell
-    $escapedOutput = escapeshellarg($output);
+    $escapedOutput = escapeshellarg($audioOutput);
 
     // Build espeak-ng command
     $espeakCmd = "espeak-ng -v mb-de2 -w " . escapeshellarg($audioFile) . " $escapedOutput";
@@ -375,7 +379,7 @@ if ($httpCode !== 200) {
     $audioFile = $data['session'] . "_" . $data['seq'] . '.wav'; // plain name here 
     $synth = "coqui";
     $postFields = [
-        'text' => $output,
+        'text' => $audioOutput,
         'file' => $audioFile
     ];
 
