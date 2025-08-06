@@ -1,5 +1,5 @@
 <?php
-function processOggWithSox(string $oggFile): string | null
+function decodeAdpcm(string $oggFile): string | null
 {
     // Validate file
     if (!is_file($oggFile) || strtolower(pathinfo($oggFile, PATHINFO_EXTENSION)) !== 'ogg') {
