@@ -202,7 +202,12 @@ if (!file_exists($iniPath)) {
     exit;
 }
 
-$configLlm = parse_ini_file($iniPath, true)['llm'] ?? null;
+if (!$useRemote) {
+    $configLlm = parse_ini_file($iniPath, true)['LOCAL'] ?? null;
+} else {
+    $configLlm = parse_ini_file($iniPath, true)['REMOTE'] ?? null;
+}
+
 if (!$configLlm) {
     logError("Invalid config format in $iniPath", $logFile);
     http_response_code(500);
@@ -275,8 +280,8 @@ if (!$useRemote) {
     logError("Using remote LLM API", $logFile);
     // Call the remote LLM API
     $apiKey = $configLlm['api_key'];
-    $model = $configLlm['model'];
-    $url = $configLlm['url'];
+    $model = $configLlm['llmodel'];
+    $url = $configLlm['llurl'];
 
     // Call the function
     $response = remoteQuery($apiKey, $model, $url, $remotePrompt, $remoteContext, $remoteQuery);
