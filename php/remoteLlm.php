@@ -18,7 +18,9 @@ function remoteQuery($key, $model, $url, $prompt, $context, $query): array
     // Prepare request payload
     $payload = json_encode([
         "model" => $model,
-        "messages" => $messages
+        "messages" => $messages,
+        "temperature" => 0.5, // Example temperature setting
+        "seed" => 1234
     ]);
 
     // Set up cURL

@@ -222,6 +222,7 @@ $lockname = 'llm';
 // blocking!    
 acquireLock($lockname);
 
+$useRemote = true; // force remote LLM for testing
 
 if (!$useRemote) {
 
@@ -277,11 +278,11 @@ if (!$useRemote) {
     }
 
 } else {
-    logError("Using remote LLM API", $logFile);
     // Call the remote LLM API
     $apiKey = $configLlm['api_key'];
     $model = $configLlm['llmodel'];
     $url = $configLlm['llurl'];
+    logError("Using remote LLM API at $url", $logFile);
 
     // Call the function
     $response = remoteQuery($apiKey, $model, $url, $remotePrompt, $remoteContext, $remoteQuery);
