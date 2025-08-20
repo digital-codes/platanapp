@@ -222,84 +222,26 @@ $lockname = 'llm';
 // blocking!    
 acquireLock($lockname);
 
-$useRemote = true; // force remote LLM for testing
+// Call the remote LLM API
+$apiKey = $configLlm['api_key'];
+$model = $configLlm['llmodel'];
+$url = $configLlm['llurl'];
+logError("Using remote LLM API at $url", $logFile);
 
-if (!$useRemote) {
-
-    // check
-    logError("Using ollama " . $configLlm['url'], $logFile);
-
-    // Build the `ollama run` command
-    $model = isset($data['model']) ? escapeshellarg($data['model']) : 'granite3.3:2b';
-    // qwen2.5:3b   deepseek-r1:1.5b  gemma3:1b  phi3:mini llama3.2:latest 
-
-    //set env for ollama. needs to store some cache data there
-    $home = '/home/okl';
-    $env = array_merge($_ENV, [
-        'HOME' => $home,
+// Call the function
+$response = remoteQuery($apiKey, $model, $url, $remotePrompt, $remoteContext, $remoteQuery);
+if ($response['status'] === 'error') {
+    http_response_code(500);
+    logError("remote llm failed", $logFile);
+    echo json_encode([
+        'error' => 'LLM execution failed',
     ]);
-
-
-    $descriptorSpec = [
-        0 => ['pipe', 'r'],
-        1 => ['pipe', 'w'],
-        2 => ['pipe', 'w'],
-    ];
-
-    $process = proc_open("ollama run $model", $descriptorSpec, $pipes, null, $env);
-
-    if (!is_resource($process)) {
-        http_response_code(500);
-        echo json_encode(['error' => 'Failed to start Ollama']);
-        exit;
-    }
-
-    fwrite($pipes[0], $modelPrompt);
-    fclose($pipes[0]);
-
-    $output = stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-
-    $error = stream_get_contents($pipes[2]);
-    fclose($pipes[2]);
-
-    $returnCode = proc_close($process);
-
-    if ($returnCode !== 0) {
-        http_response_code(500);
-        logError("Ollama failed on: " . $modelPrompt, $logFile);
-
-        echo json_encode([
-            'error' => 'Ollama execution failed',
-            'exitCode' => $returnCode,
-            'stderr' => $error
-        ]);
-        exit;
-    }
-
+    exit;
 } else {
-    // Call the remote LLM API
-    $apiKey = $configLlm['api_key'];
-    $model = $configLlm['llmodel'];
-    $url = $configLlm['llurl'];
-    logError("Using remote LLM API at $url", $logFile);
-
-    // Call the function
-    $response = remoteQuery($apiKey, $model, $url, $remotePrompt, $remoteContext, $remoteQuery);
-    if ($response['status'] === 'error') {
-        http_response_code(500);
-        logError("remote llm failed", $logFile);
-        echo json_encode([
-            'error' => 'LLM execution failed',
-        ]);
-        exit;
-    } else {
-        // Process the response as needed
-        $output = $response['reply'];
-        $output = preg_replace('/^Assistant:\s*/i', '', $output);
-    }
+    // Process the response as needed
+    $output = $response['reply'];
+    $output = preg_replace('/^Assistant:\s*/i', '', $output);
 }
-// store chat data
 
 releaseLock($lockname);
 
