@@ -1,7 +1,7 @@
 <template>
     <section class="timeline">
     <h2 class="timeline__headline">Was bisher geschah ...</h2>
-    <p>Die Zusammenfassungen sind machinell erstellt, bitte ggf. die Quelle beachten. 
+    <p>Die Zusammenfassungen sind maschinell erstellt, bitte ggf. die Quelle beachten. 
         Wir übernehmen keine Gewähr für die Richtigkeit der Inhalte.</p>
         <!-- Sorting control (optional UI) -->
         <div class="timeline__controls" v-if="showSortControls">
@@ -154,6 +154,7 @@ watch(
 
 .timeline__controls select {
     padding: 0.25rem 0.5rem;
+    margin-left: 1rem;
 }
 
 /* -------------------------------------------------
