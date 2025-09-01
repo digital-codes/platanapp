@@ -17,6 +17,7 @@
     "@capacitor/geolocation": "^7.1.4",
     "@capacitor/motion": "^7.0.0",
     "@capacitor/preferences": "^7.0.1",
+    "date-fns": "^4.1.0",
     "uuid": "^11.1.0",
     "vue": "^3.3.11",
     "vue-i18n": "^11.1.10"

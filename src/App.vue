@@ -11,6 +11,8 @@ import ModelSelector from './components/ModelSelector.vue'
 import PromptSelector from './components/PromptSelector.vue'
 import FooterInfo from './components/FooterInfo.vue'
 import FollowCheck from './components/FollowCheck.vue'
+import VerticalTimeline from './components/TimeLine.vue';
+import timelineData from './assets/data/analyse_ergebnisse.json'
 
 import { useI18n } from 'vue-i18n'
 const { t, locale } = useI18n()
@@ -18,6 +20,7 @@ const { t, locale } = useI18n()
 import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
 import { v7 as uuidv7 } from 'uuid';
+
 
 const hasAudio = ref<boolean>(false)
 const hasText = ref<boolean>(false)
@@ -310,6 +313,13 @@ onMounted(async () => {
       @completed="processing=true"
       :disable-record-button="processing"/>
     </div>
+
+
+  <VerticalTimeline id="timeline"
+    :items="timelineData"
+    initialSort="asc"
+    :showSortControls="true"
+  />
 
     <FooterInfo />
   </div>
