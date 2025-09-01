@@ -1,7 +1,8 @@
 <template>
     <section class="timeline">
     <h2 class="timeline__headline">Was bisher geschah ...</h2>
-    <p>Die Zusammenfassungen sind machinell erstellt, bitte ggf. die Quelle beachten.</p>
+    <p>Die Zusammenfassungen sind machinell erstellt, bitte ggf. die Quelle beachten. 
+        Wir übernehmen keine Gewähr für die Richtigkeit der Inhalte.</p>
         <!-- Sorting control (optional UI) -->
         <div class="timeline__controls" v-if="showSortControls">
             <label>
