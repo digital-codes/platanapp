@@ -8,7 +8,7 @@
       class="prompt-select"
     >
       <option value="default">Platane</option>
-      <option value="fest25">Das Fest 2025</option>
+      <option value="workshop">Workshop</option>
     </select>
   </div>
 </template>

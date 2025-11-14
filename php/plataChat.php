@@ -114,7 +114,7 @@ if (!isset($data['prompt'])) {
     echo json_encode(['error' => 'Missing prompt']);
     exit;
 }
-if (isset($data['model']) && $data['model'] === 'remote' ) {
+if (isset($data['model']) && $data['model'] === 'remote') {
     // set for remote llm
     $useRemote = true;
 } else {
@@ -128,13 +128,16 @@ if ($data["seq"] == 1) {
         case 'default':
             $promptfile = "plataPrompt.txt";
             break;
+        case 'workshop':
+            $promptfile = "workshopPrompt.txt";
+            break;
         case 'fest25':
-            $promptfile = "fest25Prompt.txt";
+            $promptfile = "workshopPrompt.txt";
             break;
         default:
-            logError('Unsupported prompt', $logFile);
+            logError('Unsupported prompt: ' . $data['prompt'], $logFile);
             http_response_code(400);
-            echo json_encode(['error' => 'Unsupported prompt']);
+            echo json_encode(['error' => 'Unsupported prompt:' . $data['prompt']]);
             exit;
     }
 
