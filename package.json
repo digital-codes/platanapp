@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
+    "build-plain": "vue-tsc && vite build -c vite.config-plain.ts",
     "preview": "vite preview"
   },
   "dependencies": {
