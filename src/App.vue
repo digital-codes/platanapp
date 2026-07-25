@@ -11,8 +11,8 @@ import ModelSelector from './components/ModelSelector.vue'
 import PromptSelector from './components/PromptSelector.vue'
 import FooterInfo from './components/FooterInfo.vue'
 import FollowCheck from './components/FollowCheck.vue'
-import VerticalTimeline from './components/TimeLine.vue';
-import timelineData from './assets/data/analyse_ergebnisse.json'
+//import VerticalTimeline from './components/TimeLine.vue';
+//import timelineData from './assets/data/analyse_ergebnisse.json'
 
 import { useI18n } from 'vue-i18n'
 const { t, locale } = useI18n()
@@ -32,7 +32,7 @@ const audioUrl = ref<string | null>(null)
 const model = ref<string>('phi4-mini:3.8b') // Default model
 const chatHistory = ref<Array<{ type: 'user' | 'assistant', message: string, audioUrl?: string }>>([])
 const chatSequence = ref<number>(1)
-const prompt = ref<string>("default") // Default prompt
+const prompt = ref<string>("fest26") // Default prompt
 const processing = ref<boolean>(false)
 const chatMessagesRef = ref<HTMLElement | null>(null)
 
@@ -314,13 +314,13 @@ onMounted(async () => {
       :disable-record-button="processing"/>
     </div>
 
-
+<!-- 
   <VerticalTimeline id="timeline"
     :items="timelineData"
     initialSort="asc"
     :showSortControls="true"
   />
-
+-->
     <FooterInfo />
   </div>
 </template>

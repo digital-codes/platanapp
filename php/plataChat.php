@@ -134,6 +134,9 @@ if ($data["seq"] == 1) {
         case 'fest25':
             $promptfile = "workshopPrompt.txt";
             break;
+        case 'fest26':
+            $promptfile = "fest26Prompt.txt";
+            break;
         default:
             logError('Unsupported prompt: ' . $data['prompt'], $logFile);
             http_response_code(400);

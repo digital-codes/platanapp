@@ -7,6 +7,7 @@
       @change="updateModel"
       class="prompt-select"
     >
+      <option value="fest26">Fest26</option>
       <option value="default">Platane</option>
       <option value="workshop">Workshop</option>
     </select>
